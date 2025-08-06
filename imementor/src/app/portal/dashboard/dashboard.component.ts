@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PageHeaderComponent, PageAction } from '../../shared/page-header/page-header.component';
+import { PageAction } from '../../shared/page-header/page-header.component';
 
 export interface DashboardCard {
   title: string;
@@ -25,7 +25,7 @@ export interface RecentActivity {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, PageHeaderComponent],
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
