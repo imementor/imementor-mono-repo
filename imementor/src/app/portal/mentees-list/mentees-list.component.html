@@ -1,0 +1,120 @@
+<div class="mentees-list-container">
+  <div class="mentees-header">
+    <h2>Mga Mentees</h2>
+    <p class="subtitle">Manage and track your mentees' progress</p>
+  </div>
+
+  <div class="controls-section">
+    <div class="search-bar">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="M21 21l-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search mentees by name, email, school..."
+        [value]="searchQuery"
+        (input)="onSearchChange($event)">
+    </div>
+
+    <div class="filters">
+      <select class="filter-select" [value]="selectedFilter" (change)="onFilterChange($event)">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="pending">Pending</option>
+      </select>
+
+      <select class="sort-select" [value]="sortBy" (change)="onSortChange($event)">
+        <option value="name">Sort by Name</option>
+        <option value="school">Sort by School</option>
+        <option value="dateJoined">Sort by Date Joined</option>
+        <option value="lastActive">Sort by Last Active</option>
+        <option value="sessions">Sort by Sessions</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mentees-grid">
+    <div 
+      *ngFor="let mentee of filteredMentees" 
+      class="mentee-card"
+      (click)="onMenteeClick(mentee)">
+      
+      <div class="mentee-header">
+        <div class="mentee-avatar" *ngIf="!mentee.avatar">
+          {{ getInitials(mentee.firstName, mentee.lastName) }}
+        </div>
+        <img 
+          *ngIf="mentee.avatar" 
+          [src]="mentee.avatar" 
+          [alt]="mentee.firstName + ' ' + mentee.lastName"
+          class="mentee-avatar-img">
+        
+        <div class="mentee-info">
+          <h3 class="mentee-name">{{ mentee.firstName }} {{ mentee.lastName }}</h3>
+          <p class="mentee-email">{{ mentee.email }}</p>
+          <span class="mentee-status" [class]="getStatusClass(mentee.status)">
+            {{ mentee.status | titlecase }}
+          </span>
+        </div>
+      </div>
+
+      <div class="mentee-details">
+        <div class="detail-row">
+          <span class="detail-label">School:</span>
+          <span class="detail-value">{{ mentee.school }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Program:</span>
+          <span class="detail-value">{{ mentee.program }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Year Level:</span>
+          <span class="detail-value">{{ mentee.yearLevel }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Sessions:</span>
+          <span class="detail-value">{{ mentee.sessionsCompleted }}</span>
+        </div>
+      </div>
+
+      <div class="mentee-interests">
+        <h4>Interests:</h4>
+        <div class="interests-tags">
+          <span *ngFor="let interest of mentee.interests" class="interest-tag">
+            {{ interest }}
+          </span>
+        </div>
+      </div>
+
+      <div class="mentee-actions">
+        <button 
+          class="action-btn primary"
+          (click)="onStartSession(mentee, $event)">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          Start Session
+        </button>
+        <button 
+          class="action-btn secondary"
+          (click)="onSendMessage(mentee, $event)">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Message
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="filteredMentees.length === 0" class="no-results">
+    <svg class="no-results-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="M21 21l-4.35-4.35"></path>
+    </svg>
+    <h3>No mentees found</h3>
+    <p>Try adjusting your search or filter criteria.</p>
+  </div>
+</div>

@@ -1,0 +1,365 @@
+/* Navigation */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 0.875rem 0;
+  transition: all 0.3s ease;
+
+  &.scrolled {
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  }
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  svg {
+    width: 70px;
+    height: 70px;
+    transition: transform 0.3s ease;
+    
+    &:hover {
+      transform: rotate(5deg) scale(1.05);
+    }
+  }
+}
+
+.logo-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    transform: rotate(5deg) scale(1.05);
+    animation: mentorGlow 2s ease-in-out infinite;
+  }
+}
+
+/* Philippine Sun Design */
+.sun-center {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #ffd700;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  z-index: 3;
+}
+
+/* Main sun rays (8 rays like Philippine flag) */
+.sun-ray {
+  position: absolute;
+  background: #ffd700;
+  border-radius: 1px;
+  transform-origin: center;
+
+  &.primary {
+    width: 3px;
+    height: 12px;
+  }
+
+  &.secondary {
+    width: 2px;
+    height: 8px;
+  }
+
+  /* Ray positioning - 8 primary rays */
+  &:nth-child(1) {
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  &:nth-child(2) {
+    top: 12px;
+    right: 12px;
+    transform: rotate(45deg);
+  }
+
+  &:nth-child(3) {
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  &:nth-child(4) {
+    bottom: 12px;
+    right: 12px;
+    transform: rotate(135deg);
+  }
+
+  &:nth-child(5) {
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(180deg);
+  }
+
+  &:nth-child(6) {
+    bottom: 12px;
+    left: 12px;
+    transform: rotate(225deg);
+  }
+
+  &:nth-child(7) {
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%) rotate(270deg);
+  }
+
+  &:nth-child(8) {
+    top: 12px;
+    left: 12px;
+    transform: rotate(315deg);
+  }
+}
+
+/* Connection lines representing mentorship */
+.connection-line {
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 1px;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  animation: connectionPulse 2s ease-in-out infinite;
+
+  &:nth-child(10) {
+    top: 35%;
+    left: 18px;
+    width: 14px;
+    animation-delay: 0.5s;
+  }
+
+  &:nth-child(11) {
+    top: 65%;
+    left: 18px;
+    width: 14px;
+    animation-delay: 1s;
+  }
+}
+
+/* Animations */
+@keyframes connectionPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes mentorGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.6), 0 0 60px rgba(118, 75, 162, 0.4);
+  }
+}
+
+@keyframes sunRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.logo-icon:hover .sun-ray {
+  animation: sunRotate 8s linear infinite;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+
+  a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    position: relative;
+    padding: 10px 18px;
+    border-radius: 25px;
+    overflow: hidden;
+
+    &:hover {
+      color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      color: white;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      font-weight: 600;
+      transform: translateY(-2px);
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+        border-radius: 25px;
+        pointer-events: none;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 1px;
+        animation: activeGlow 2s ease-in-out infinite;
+      }
+    }
+  }
+}
+
+/* Auth Actions */
+.auth-actions {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0) scale(1.02);
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+    animation: rocket 2s ease-in-out infinite;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+/* Rocket animation for login button icon */
+@keyframes rocket {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(-1px) rotate(2deg);
+  }
+}
+
+/* Active state glow animation */
+@keyframes activeGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+  
+  .auth-actions {
+    margin-left: 0.5rem;
+  }
+  
+  .login-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    
+    .btn-icon {
+      font-size: 1rem;
+    }
+  }
+  
+  /* Mobile menu would go here - for now hiding nav links */
+  /* Consider adding a hamburger menu for mobile navigation */
+}

@@ -1,0 +1,591 @@
+<div class="live-class-management-container">
+  <div class="header">
+    <div class="header-content">
+      <h1>Live Class Management</h1>
+      <p>Create and manage your live classes</p>
+    </div>
+    <button (click)="openAddClassModal()" class="btn btn-primary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Live Class
+    </button>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="M21 21l-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search live classes..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        class="search-input">
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="selectedStatus" (change)="onStatusChange()" class="filter-select">
+          <option value="all">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="live">Live</option>
+          <option value="ended">Ended</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Sort by:</label>
+        <div class="sort-controls">
+          <select [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
+            <option value="date">Schedule Date</option>
+            <option value="created">Created Date</option>
+            <option value="title">Title</option>
+            <option value="participants">Participants</option>
+          </select>
+          <button (click)="toggleSortOrder()" class="sort-order-btn" [title]="sortOrder === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortOrder === 'asc'" d="M7 11l5-5 5 5M7 17l5-5 5 5"></path>
+              <path *ngIf="sortOrder === 'desc'" d="M7 13l5 5 5-5M7 7l5 5 5-5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classes Grid -->
+  <div class="classes-grid" *ngIf="filteredClasses.length > 0">
+    <div *ngFor="let liveClass of filteredClasses" class="class-card">
+      <!-- Status Badge -->
+      <div class="status-badge" [style.background-color]="getStatusColor(liveClass.status)">
+        <span class="status-dot" *ngIf="liveClass.status === 'live'"></span>
+        {{ liveClass.status | titlecase }}
+      </div>
+
+      <!-- Cover Image -->
+      <div class="class-image">
+        <img [src]="liveClass.coverImage" [alt]="liveClass.title" />
+        <div class="image-overlay">
+          <span class="duration">{{ formatDuration(liveClass.duration) }}</span>
+          <span class="difficulty" [style.background-color]="getDifficultyColor(liveClass.difficulty)">
+            {{ liveClass.difficulty }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Class Info -->
+      <div class="class-info">
+        <h3 class="class-title">{{ liveClass.title }}</h3>
+        <p class="class-description">{{ liveClass.description }}</p>
+
+        <!-- Schedule Info -->
+        <div class="schedule-info">
+          <div class="schedule-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>{{ formatDate(liveClass.scheduledDate) }}</span>
+          </div>
+          <div class="schedule-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12,6 12,12 16,14"></polyline>
+            </svg>
+            <span>{{ formatTime(liveClass.scheduledTime) }}</span>
+          </div>
+        </div>
+
+        <!-- Topics -->
+        <div class="topics">
+          <span *ngFor="let topic of liveClass.topics" class="topic-tag">{{ topic }}</span>
+        </div>
+
+        <!-- Participants -->
+        <div class="participants-info">
+          <div class="participants-count">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>{{ liveClass.currentParticipants }}/{{ liveClass.maxParticipants }} registered</span>
+          </div>
+          <div class="participants-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="(liveClass.currentParticipants / liveClass.maxParticipants) * 100"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="price-info">
+          <span class="price">₱{{ liveClass.price.toLocaleString() }}</span>
+          <span class="price-label">per student</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <!-- View Details Button -->
+          <button 
+            (click)="openDetailsModal(liveClass)"
+            class="btn btn-primary btn-small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Details
+          </button>
+
+          <!-- Live Class Actions -->
+          <button 
+            *ngIf="liveClass.status === 'scheduled'"
+            (click)="startLiveClass(liveClass)"
+            class="btn btn-live btn-small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5,3 19,12 5,21"></polygon>
+            </svg>
+            Start Class
+          </button>
+
+          <button 
+            *ngIf="liveClass.status === 'live'"
+            (click)="endLiveClass(liveClass)"
+            class="btn btn-danger btn-small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="6" width="12" height="12"></rect>
+            </svg>
+            End Class
+          </button>
+
+          <!-- Edit Button -->
+          <button 
+            (click)="openEditClassModal(liveClass)"
+            class="btn btn-outline btn-small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            Edit
+          </button>
+
+          <!-- Students Button -->
+          <button 
+            (click)="openStudentsModal(liveClass)"
+            class="btn btn-secondary btn-small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Students ({{ liveClass.currentParticipants }})
+          </button>
+        </div>
+
+        <!-- More Actions Dropdown -->
+        <div class="more-actions">
+          <button (click)="duplicateClass(liveClass)" class="action-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Duplicate
+          </button>
+          <button 
+            *ngIf="liveClass.status === 'scheduled' || liveClass.status === 'draft'"
+            (click)="cancelClass(liveClass)" 
+            class="action-link danger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Cancel
+          </button>
+          <button (click)="deleteClass(liveClass)" class="action-link danger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3,6 5,6 21,6"></polyline>
+              <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredClasses.length === 0" class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+      <line x1="8" y1="21" x2="16" y2="21"></line>
+      <line x1="12" y1="17" x2="12" y2="21"></line>
+      <circle cx="12" cy="10" r="3"></circle>
+    </svg>
+    <h3>No live classes found</h3>
+    <p>Create your first live class to get started!</p>
+    <button (click)="openAddClassModal()" class="btn btn-primary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Live Class
+    </button>
+  </div>
+</div>
+
+<!-- Add/Edit Class Modal -->
+<div *ngIf="showAddClassModal || showEditClassModal" class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ showAddClassModal ? 'Add New Live Class' : 'Edit Live Class' }}</h2>
+      <button (click)="closeModals()" class="close-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveClass()">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3>Basic Information</h3>
+          
+          <div class="form-group">
+            <label for="title">Class Title *</label>
+            <input 
+              type="text" 
+              id="title" 
+              [(ngModel)]="classForm.title" 
+              name="title"
+              placeholder="Enter class title"
+              required 
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea 
+              id="description" 
+              [(ngModel)]="classForm.description" 
+              name="description"
+              placeholder="Describe what students will learn in this class"
+              rows="4"
+              required 
+              class="form-textarea"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select 
+                id="category" 
+                [(ngModel)]="classForm.category" 
+                name="category"
+                required 
+                class="form-select">
+                <option value="">Select category</option>
+                <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="difficulty">Difficulty Level *</label>
+              <select 
+                id="difficulty" 
+                [(ngModel)]="classForm.difficulty" 
+                name="difficulty"
+                required 
+                class="form-select">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Information -->
+        <div class="form-section">
+          <h3>Schedule & Duration</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="scheduledDate">Date *</label>
+              <input 
+                type="date" 
+                id="scheduledDate" 
+                [(ngModel)]="classForm.scheduledDate" 
+                name="scheduledDate"
+                required 
+                class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label for="scheduledTime">Time *</label>
+              <input 
+                type="time" 
+                id="scheduledTime" 
+                [(ngModel)]="classForm.scheduledTime" 
+                name="scheduledTime"
+                required 
+                class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label for="duration">Duration (minutes) *</label>
+              <input 
+                type="number" 
+                id="duration" 
+                [(ngModel)]="classForm.duration" 
+                name="duration"
+                min="15"
+                max="480"
+                required 
+                class="form-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Class Details -->
+        <div class="form-section">
+          <h3>Class Details</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="maxParticipants">Max Participants *</label>
+              <input 
+                type="number" 
+                id="maxParticipants" 
+                [(ngModel)]="classForm.maxParticipants" 
+                name="maxParticipants"
+                min="1"
+                max="100"
+                required 
+                class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label for="price">Price (₱) *</label>
+              <input 
+                type="number" 
+                id="price" 
+                [(ngModel)]="classForm.price" 
+                name="price"
+                min="0"
+                required 
+                class="form-input">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="zoomLink">Zoom Link</label>
+            <input 
+              type="url" 
+              id="zoomLink" 
+              [(ngModel)]="classForm.zoomLink" 
+              name="zoomLink"
+              placeholder="https://zoom.us/j/..."
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label for="coverImage">Cover Image</label>
+            <input 
+              type="file" 
+              id="coverImage" 
+              (change)="onImageUpload($event)"
+              accept="image/*"
+              class="form-file">
+            <div *ngIf="classForm.coverImage" class="image-preview">
+              <img [src]="classForm.coverImage" alt="Cover preview" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Topics -->
+        <div class="form-section">
+          <h3>Topics to Cover</h3>
+          <div class="dynamic-list">
+            <div *ngFor="let topic of classForm.topics; let i = index" class="dynamic-item">
+              <input 
+                type="text" 
+                [(ngModel)]="classForm.topics[i]" 
+                [name]="'topic_' + i"
+                placeholder="Enter topic"
+                class="form-input">
+              <button 
+                type="button" 
+                (click)="removeTopic(i)" 
+                class="remove-btn"
+                [disabled]="classForm.topics.length === 1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <button type="button" (click)="addTopic()" class="add-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Topic
+            </button>
+          </div>
+        </div>
+
+        <!-- Requirements -->
+        <div class="form-section">
+          <h3>Prerequisites/Requirements</h3>
+          <div class="dynamic-list">
+            <div *ngFor="let requirement of classForm.requirements; let i = index" class="dynamic-item">
+              <input 
+                type="text" 
+                [(ngModel)]="classForm.requirements[i]" 
+                [name]="'requirement_' + i"
+                placeholder="Enter requirement"
+                class="form-input">
+              <button 
+                type="button" 
+                (click)="removeRequirement(i)" 
+                class="remove-btn"
+                [disabled]="classForm.requirements.length === 1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <button type="button" (click)="addRequirement()" class="add-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Requirement
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" (click)="closeModals()" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            {{ showAddClassModal ? 'Create Class' : 'Update Class' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Students Modal -->
+<div *ngIf="showStudentsModal && selectedClass" class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Registered Students - {{ selectedClass.title }}</h2>
+      <div class="header-actions">
+        <button (click)="exportStudentList()" class="btn btn-outline btn-small">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7,10 12,15 17,10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export CSV
+        </button>
+        <button (click)="closeModals()" class="close-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <div class="students-summary">
+        <div class="summary-card">
+          <h4>{{ selectedClass.currentParticipants }}</h4>
+          <span>Total Registered</span>
+        </div>
+        <div class="summary-card">
+          <h4>{{ selectedClass.maxParticipants - selectedClass.currentParticipants }}</h4>
+          <span>Spots Available</span>
+        </div>
+        <div class="summary-card">
+          <h4>₱{{ (selectedClass.price * selectedClass.currentParticipants).toLocaleString() }}</h4>
+          <span>Total Revenue</span>
+        </div>
+      </div>
+
+      <div class="students-list" *ngIf="selectedClass.registeredStudents.length > 0">
+        <div class="student-card" *ngFor="let student of selectedClass.registeredStudents">
+          <div class="student-info">
+            <img [src]="student.avatar" [alt]="student.name" class="student-avatar" />
+            <div class="student-details">
+              <h4>{{ student.name }}</h4>
+              <p class="email">{{ student.email }}</p>
+              <p class="school" *ngIf="student.school">{{ student.school }}</p>
+              <p class="registration-date">Registered: {{ formatDate(student.registeredAt) }}</p>
+            </div>
+          </div>
+          <div class="student-status">
+            <span class="payment-status" [style.color]="getPaymentStatusColor(student.paymentStatus)">
+              {{ student.paymentStatus | titlecase }}
+            </span>
+          </div>
+          <div class="student-actions">
+            <button (click)="messageStudent(student)" class="btn btn-outline btn-small">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Message
+            </button>
+            <button (click)="removeStudent(student)" class="btn btn-danger btn-small">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedClass.registeredStudents.length === 0" class="no-students">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <h4>No students registered yet</h4>
+        <p>Students will appear here once they register for your class.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Live Class Details Modal -->
+<app-live-class-details-modal
+  [isOpen]="showDetailsModal"
+  [liveClassId]="selectedClassId"
+  [userRole]="'mentor'"
+  (close)="closeDetailsModal()"
+  (enroll)="onClassDetailsEnroll($event)"
+  (join)="onClassDetailsJoin($event)"
+  (edit)="onClassDetailsEdit($event)"
+  (delete)="onClassDetailsDelete($event)">
+</app-live-class-details-modal>

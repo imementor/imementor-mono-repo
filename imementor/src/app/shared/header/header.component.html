@@ -1,0 +1,98 @@
+<header class="app-header">
+  <div class="header-left">
+    <button 
+      class="menu-toggle" 
+      (click)="onToggleSidePanel()"
+      [class.active]="isSidePanelOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <div class="logo-section">
+      <div class="logo">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="header-gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="header-gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="header-gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+            </linearGradient>
+            <marker id="header-arrowhead" markerWidth="8" markerHeight="6" 
+             refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="url(#header-gradient3)" />
+            </marker>
+          </defs>
+          
+          <circle cx="75" cy="85" r="22" fill="url(#header-gradient1)"/>
+          <circle cx="125" cy="95" r="16" fill="url(#header-gradient2)"/>
+          <path d="M 97 89 L 109 92" stroke="url(#header-gradient3)" stroke-width="3" fill="none" marker-end="url(#header-arrowhead)"/>
+        </svg>
+      </div>
+      <h1 class="app-title">IMementor</h1>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-section">
+      <span class="user-name">{{ fullName }}</span>
+      <div class="user-menu" (click)="onToggleUserMenu()">
+        <div class="user-avatar" *ngIf="!user.avatar">
+          {{ userInitials }}
+        </div>
+        <img 
+          *ngIf="user.avatar" 
+          [src]="user.avatar" 
+          [alt]="fullName"
+          class="user-avatar-img">
+        <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="6,9 12,15 18,9"></polyline>
+        </svg>
+      </div>
+
+      <!-- User Dropdown Menu -->
+      <div class="dropdown-menu" *ngIf="showUserMenu">
+        <div class="dropdown-header">
+          <div class="dropdown-user-info">
+            <div class="dropdown-avatar" *ngIf="!user.avatar">
+              {{ userInitials }}
+            </div>
+            <img 
+              *ngIf="user.avatar" 
+              [src]="user.avatar" 
+              [alt]="fullName"
+              class="dropdown-avatar-img">
+            <div class="dropdown-text">
+              <p class="dropdown-name">{{ fullName }}</p>
+              <p class="dropdown-email">{{ user.email }}</p>
+              <span class="dropdown-role">{{ user.userType === 'mentor' ? 'Mentor' : 'Mentee' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" (click)="onViewProfile()">
+          <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          View Profile
+        </button>
+        <button class="dropdown-item" (click)="onLogout()">
+          <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="m9 21 7-7-7-7"/>
+            <path d="M20 12H9"/>
+            <path d="M7 6v10"/>
+          </svg>
+          Mag-logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

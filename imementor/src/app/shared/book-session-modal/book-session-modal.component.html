@@ -1,0 +1,514 @@
+<div *ngIf="isOpen" class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <h2>Book a Session</h2>
+        <div class="mentor-info" *ngIf="mentor">
+          <img [src]="mentor.avatar" [alt]="mentor.name" class="mentor-avatar" />
+          <div class="mentor-details">
+            <h3>{{ mentor.name }}</h3>
+            <p>{{ mentor.expertise.join(', ') }}</p>
+            <div class="mentor-stats">
+              <span class="rating">
+                ⭐ {{ mentor.rating }}/5
+              </span>
+              <span class="sessions">
+                {{ mentor.sessionsCompleted }} sessions
+              </span>
+              <span class="rate">
+                ₱{{ mentor.hourlyRate }}/hour
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button (click)="onClose()" class="close-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+      </div>
+      <div class="step-indicators">
+        <div 
+          *ngFor="let step of [1, 2, 3, 4]; let i = index"
+          class="step-indicator"
+          [class.active]="currentStep === step"
+          [class.completed]="currentStep > step"
+          (click)="isStepValid(step) ? goToStep(step) : null">
+          <span class="step-number">{{ step }}</span>
+          <span class="step-label">
+            {{ step === 1 ? 'Schedule' : step === 2 ? 'Session Type' : step === 3 ? 'Details' : 'Review' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Step 1: Select Date & Time -->
+      <div *ngIf="currentStep === 1" class="step-content">
+        <h3>Select Date & Time</h3>
+        <p>Choose when you'd like to have your session</p>
+
+        <!-- Mentor Availability Overview -->
+        <div class="availability-overview" *ngIf="mentor">
+          <div class="availability-card">
+            <div class="availability-header">
+              <h4>🕒 Availability Overview</h4>
+              <span class="timezone">{{ getMentorTimezone() }}</span>
+            </div>
+            <div class="availability-info">
+              <div class="next-slot">
+                <span class="label">Next Available:</span>
+                <span class="value">{{ getNextAvailableSlot() }}</span>
+              </div>
+              <div class="response-time">
+                <span class="label">Response Time:</span>
+                <span class="value">{{ mentor.responseTime }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Weekly Schedule Overview -->
+          <div class="weekly-schedule">
+            <h5>📅 Weekly Schedule</h5>
+            <div class="schedule-grid">
+              <div 
+                *ngFor="let schedule of getWeeklyAvailability()" 
+                class="schedule-day"
+                [class.unavailable]="schedule.hours === 'Not available'">
+                <span class="day">{{ schedule.day.substring(0, 3) }}</span>
+                <span class="hours">{{ schedule.hours }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="schedule-selection">
+          <!-- Date Selection -->
+          <div class="date-section">
+            <h4>📆 Select Date</h4>
+            <div class="date-grid">
+              <div 
+                *ngFor="let day of availableDays"
+                class="date-card"
+                [class.selected]="selectedDay?.date === day.date"
+                [class.weekend]="day.isWeekend"
+                [class.high-availability]="day.mentorAvailability === 'high'"
+                [class.medium-availability]="day.mentorAvailability === 'medium'"
+                [class.low-availability]="day.mentorAvailability === 'low'"
+                (click)="onDaySelect(day)">
+                
+                <div class="date-header">
+                  <span class="month-year">{{ getMonthYear(day.date) }}</span>
+                  <span class="day-name">{{ day.dayName }}</span>
+                  <span class="date-number">{{ getDateNumber(day.date) }}</span>
+                </div>
+                
+                <div class="availability-info">
+                  <div class="availability-indicator">
+                    <div 
+                      class="availability-dot" 
+                      [style.background-color]="getAvailabilityColor(day.mentorAvailability)">
+                    </div>
+                    <span class="availability-text">
+                      {{ getAvailableSlotsCount(day) }} {{ getAvailableSlotsCount(day) === 1 ? 'slot' : 'slots' }}
+                    </span>
+                  </div>
+                  
+                  <div class="availability-badge" [style.background-color]="getAvailabilityColor(day.mentorAvailability) + '20'">
+                    {{ getAvailabilityText(day.mentorAvailability) }}
+                  </div>
+                </div>
+                
+                <!-- Weekend indicator -->
+                <div *ngIf="day.isWeekend" class="weekend-badge">
+                  Weekend
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Slot Selection -->
+          <div *ngIf="selectedDay" class="time-slots">
+            <div class="time-slots-header">
+              <h4>⏰ Available Time Slots</h4>
+              <p>{{ formatDate(selectedDay.date) }}</p>
+            </div>
+            
+            <div class="slots-legend">
+              <div class="legend-item">
+                <div class="legend-dot preferred"></div>
+                <span>Preferred slots</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot available"></div>
+                <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot unavailable"></div>
+                <span>Unavailable</span>
+              </div>
+            </div>
+
+            <div class="time-grid">
+              <div 
+                *ngFor="let slot of selectedDay.timeSlots"
+                class="time-slot"
+                [class.selected]="selectedTimeSlot?.id === slot.id"
+                [class.unavailable]="!slot.available"
+                [class.booked]="slot.booked"
+                [class.preferred]="slot.isPreferred"
+                [attr.data-tooltip]="slot.mentorNote"
+                (click)="onTimeSlotSelect(slot)">
+                
+                <div class="slot-content">
+                  <!-- Time display with better formatting -->
+                  <div class="time-display">
+                    <div class="start-time">{{ formatTime(slot.startTime) }}</div>
+                    <div class="time-separator">-</div>
+                    <div class="end-time">{{ formatTime(slot.endTime) }}</div>
+                  </div>
+                  
+                  <!-- Duration indicator -->
+                  <div class="duration-info">
+                    <span class="duration-text">{{ getDuration(slot.startTime, slot.endTime) }}</span>
+                  </div>
+                  
+                  <!-- Status indicators -->
+                  <div class="slot-status">
+                    <div *ngIf="slot.isPreferred" class="preferred-indicator">
+                      <span class="star-icon">⭐</span>
+                      <span class="preferred-text">Preferred</span>
+                    </div>
+                    
+                    <div *ngIf="!slot.available && !slot.booked" class="status-indicator unavailable">
+                      <span class="status-icon">❌</span>
+                      <span class="status-text">Unavailable</span>
+                    </div>
+                    
+                    <div *ngIf="slot.booked" class="status-indicator booked">
+                      <span class="status-icon">📅</span>
+                      <span class="status-text">Booked</span>
+                    </div>
+                    
+                    <div *ngIf="slot.available && !slot.booked && !slot.isPreferred" class="status-indicator available">
+                      <span class="status-icon">✅</span>
+                      <span class="status-text">Available</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Mentor note -->
+                  <div *ngIf="slot.mentorNote" class="mentor-note">
+                    <span class="note-icon">💡</span>
+                    <span class="note-text">{{ slot.mentorNote }}</span>
+                  </div>
+                </div>
+                
+                <!-- Hover tooltip for additional info -->
+                <div class="slot-tooltip" *ngIf="slot.available">
+                  Click to select this time slot
+                </div>
+              </div>
+            </div>
+
+            <!-- Selected Time Summary -->
+            <div *ngIf="selectedTimeSlot" class="selected-time-summary">
+              <div class="summary-card">
+                <div class="summary-header">
+                  <h5>📅 Selected Time Slot</h5>
+                  <div class="confirmation-check">✅</div>
+                </div>
+                
+                <div class="summary-content">
+                  <div class="primary-info">
+                    <div class="date-info">
+                      <span class="date-label">Date</span>
+                      <span class="date-value">{{ formatDateShort(selectedDay.date) }}</span>
+                      <span class="day-name">{{ selectedDay.dayName }}</span>
+                    </div>
+                    
+                    <div class="time-info">
+                      <span class="time-label">Time</span>
+                      <div class="time-range-display">
+                        <span class="start-time">{{ formatTime(selectedTimeSlot.startTime) }}</span>
+                        <span class="time-dash">—</span>
+                        <span class="end-time">{{ formatTime(selectedTimeSlot.endTime) }}</span>
+                      </div>
+                      <span class="duration">{{ getDuration(selectedTimeSlot.startTime, selectedTimeSlot.endTime) }} session</span>
+                    </div>
+                  </div>
+                  
+                  <div class="additional-info">
+                    <div class="info-item timezone-info">
+                      <span class="info-icon">🌏</span>
+                      <div class="info-content">
+                        <span class="info-label">Timezone</span>
+                        <span class="info-value">{{ getMentorTimezone() }}</span>
+                      </div>
+                    </div>
+                    
+                    <div class="info-item" *ngIf="selectedTimeSlot.isPreferred">
+                      <span class="info-icon">⭐</span>
+                      <div class="info-content">
+                        <span class="info-label">Special</span>
+                        <span class="info-value preferred">Mentor's preferred time</span>
+                      </div>
+                    </div>
+                    
+                    <div class="info-item" *ngIf="selectedTimeSlot.mentorNote">
+                      <span class="info-icon">💡</span>
+                      <div class="info-content">
+                        <span class="info-label">Note</span>
+                        <span class="info-value">{{ selectedTimeSlot.mentorNote }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Session Type & Duration -->
+      <div *ngIf="currentStep === 2" class="step-content">
+        <h3>Session Type & Duration</h3>
+        <p>Choose the type and duration of your session</p>
+
+        <!-- Session Type Selection -->
+        <div class="session-types">
+          <h4>Session Type</h4>
+          <div class="type-grid">
+            <div 
+              *ngFor="let type of sessionTypes"
+              class="type-card"
+              [class.selected]="sessionForm.sessionType === type.id"
+              (click)="selectSessionType(type.id)">
+              <div class="type-icon">{{ type.icon }}</div>
+              <div class="type-info">
+                <h5>{{ type.name }}</h5>
+                <p>{{ type.description }}</p>
+                <span class="type-price">
+                  ₱{{ roundMath((mentor?.hourlyRate || 0) * type.multiplier) }}/hour
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Duration Selection -->
+        <div class="duration-selection">
+          <h4>Duration</h4>
+          <div class="duration-options">
+            <div 
+              *ngFor="let duration of durations"
+              class="duration-option"
+              [class.selected]="sessionForm.duration === duration.value"
+              (click)="sessionForm.duration = duration.value">
+              {{ duration.label }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Platform Selection -->
+        <div class="platform-selection">
+          <h4>Preferred Platform</h4>
+          <div class="platform-options">
+            <div 
+              *ngFor="let platform of platforms"
+              class="platform-option"
+              [class.selected]="sessionForm.preferredPlatform === platform.id"
+              (click)="selectPlatform(platform.id)">
+              <span class="platform-icon">{{ platform.icon }}</span>
+              <span class="platform-name">{{ platform.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Session Details -->
+      <div *ngIf="currentStep === 3" class="step-content">
+        <h3>Session Details</h3>
+        <p>Tell us what you'd like to focus on during the session</p>
+
+        <form>
+          <div class="form-group">
+            <label for="topic">Session Topic *</label>
+            <input 
+              type="text" 
+              id="topic" 
+              [(ngModel)]="sessionForm.topic" 
+              name="topic"
+              placeholder="e.g., Career guidance, Technical interview prep"
+              required 
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea 
+              id="description" 
+              [(ngModel)]="sessionForm.description" 
+              name="description"
+              placeholder="Describe what you'd like to cover in this session"
+              rows="4"
+              required 
+              class="form-textarea"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Learning Goals</label>
+            <div class="goals-list">
+              <div *ngFor="let goal of sessionForm.goals; let i = index" class="goal-item">
+                <input 
+                  type="text" 
+                  [(ngModel)]="sessionForm.goals[i]" 
+                  [name]="'goal_' + i"
+                  placeholder="What do you want to achieve?"
+                  class="form-input">
+                <button 
+                  type="button" 
+                  (click)="removeGoal(i)" 
+                  class="remove-btn"
+                  [disabled]="sessionForm.goals.length === 1">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <button type="button" (click)="addGoal()" class="add-goal-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Goal
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="specialRequests">Special Requests (Optional)</label>
+            <textarea 
+              id="specialRequests" 
+              [(ngModel)]="sessionForm.specialRequests" 
+              name="specialRequests"
+              placeholder="Any specific requirements or requests for the session"
+              rows="3"
+              class="form-textarea"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 4: Review & Confirm -->
+      <div *ngIf="currentStep === 4" class="step-content">
+        <h3>Review & Confirm</h3>
+        <p>Please review your session details before booking</p>
+
+        <div class="booking-summary">
+          <!-- Session Overview -->
+          <div class="summary-section">
+            <h4>Session Overview</h4>
+            <div class="summary-item">
+              <span class="label">Date & Time:</span>
+              <span class="value">
+                {{ formatDate(sessionForm.date) }} at {{ selectedTimeSlot ? formatTime(selectedTimeSlot.startTime) : '' }}
+              </span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Duration:</span>
+              <span class="value">{{ sessionForm.duration }} minutes</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Session Type:</span>
+              <span class="value">{{ getSelectedSessionType()?.name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Platform:</span>
+              <span class="value">{{ getSelectedPlatform()?.name }}</span>
+            </div>
+          </div>
+
+          <!-- Session Details -->
+          <div class="summary-section">
+            <h4>Session Details</h4>
+            <div class="summary-item">
+              <span class="label">Topic:</span>
+              <span class="value">{{ sessionForm.topic }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Description:</span>
+              <span class="value">{{ sessionForm.description }}</span>
+            </div>
+            <div class="summary-item" *ngIf="hasFilteredGoals()">
+              <span class="label">Goals:</span>
+              <div class="goals-summary">
+                <div *ngFor="let goal of getFilteredGoals()" class="goal-item">
+                  • {{ goal }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Breakdown -->
+          <div class="summary-section cost-section">
+            <h4>Cost Breakdown</h4>
+            <div class="cost-item">
+              <span class="label">Base Rate ({{ sessionForm.duration }}min):</span>
+              <span class="value">₱{{ roundMath((mentor?.hourlyRate || 0) * (sessionForm.duration / 60)) }}</span>
+            </div>
+            <div class="cost-item" *ngIf="getSelectedSessionType()?.multiplier !== 1">
+              <span class="label">{{ getSelectedSessionType()?.name }} Adjustment:</span>
+              <span class="value">
+                {{ getSelectedSessionType()?.multiplier && getSelectedSessionType()!.multiplier > 1 ? '+' : '' }}{{ roundMath(((getSelectedSessionType()?.multiplier || 1) - 1) * 100) }}%
+              </span>
+            </div>
+            <div class="cost-total">
+              <span class="label">Total Cost:</span>
+              <span class="value">₱{{ getTotalCost() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <div class="footer-left">
+        <span class="cost-display" *ngIf="currentStep > 1">
+          Total: ₱{{ getTotalCost() }}
+        </span>
+      </div>
+      <div class="footer-right">
+        <button 
+          *ngIf="currentStep > 1"
+          (click)="previousStep()" 
+          class="btn btn-outline">
+          Back
+        </button>
+        <button 
+          *ngIf="currentStep < totalSteps"
+          (click)="nextStep()" 
+          [disabled]="!canProceed()"
+          class="btn btn-primary">
+          Next
+        </button>
+        <button 
+          *ngIf="currentStep === totalSteps"
+          (click)="onSubmit()" 
+          class="btn btn-success">
+          Book Session
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

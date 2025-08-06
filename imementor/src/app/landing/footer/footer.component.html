@@ -1,0 +1,49 @@
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h3>Imementor</h3>
+      <p>
+        Ang <span class="filipino-touch">Imementor</span> ay nagdurugtong sa mga Pilipinong may kaalaman 
+        sa mga nangangailangan ng gabay. Sama-sama nating abutin ang mga pangarap!
+      </p>
+      <div class="social-links">
+        <a href="#facebook" class="social-link">📘</a>
+        <a href="#twitter" class="social-link">🐦</a>
+        <a href="#linkedin" class="social-link">💼</a>
+        <a href="#instagram" class="social-link">📷</a>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <h3>Quick Links</h3>
+      <ul class="footer-links">
+        <li *ngFor="let link of quickLinks">
+          <a [href]="link.url">{{ link.text }}</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h3>Support</h3>
+      <ul class="footer-links">
+        <li *ngFor="let link of supportLinks">
+          <a [href]="link.url">{{ link.text }}</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h3>Makipag-ugnayan</h3>
+      <div class="contact-info">
+        <div class="contact-item" *ngFor="let contact of contactInfo">
+          <span>{{ contact.icon }}</span>
+          <span>{{ contact.text }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; {{ currentYear }} <span class="filipino-touch">Imementor</span>. Lahat ng karapatan ay nakalaan.</p>
+  </div>
+</footer>

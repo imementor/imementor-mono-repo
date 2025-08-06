@@ -1,0 +1,10 @@
+<section class="stats">
+  <div class="stats-container">
+    <div class="stat-card fade-in" *ngFor="let stat of stats">
+      <div class="stat-icon">{{ stat.icon }}</div>
+      <div class="stat-number">{{ stat.current }}</div>
+      <div class="stat-label">{{ stat.label }}</div>
+      <div class="stat-description">{{ stat.description }}</div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,261 @@
+<div class="live-classes-container">
+  <div class="header">
+    <h1>Live Classes</h1>
+    <p>Join interactive live sessions with expert mentors</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="M21 21l-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search classes, mentors, or topics..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        class="search-input">
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Category:</label>
+        <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="filter-select">
+          <option value="all">All Categories</option>
+          <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="selectedStatus" (change)="onStatusChange()" class="filter-select">
+          <option value="all">All Status</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="live">Live Now</option>
+          <option value="ended">Ended</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Difficulty:</label>
+        <select [(ngModel)]="selectedDifficulty" (change)="onDifficultyChange()" class="filter-select">
+          <option value="all">All Levels</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Sort by:</label>
+        <div class="sort-controls">
+          <select [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
+            <option value="date">Date</option>
+            <option value="title">Title</option>
+            <option value="price">Price</option>
+            <option value="participants">Participants</option>
+          </select>
+          <button (click)="toggleSortOrder()" class="sort-order-btn" [title]="sortOrder === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortOrder === 'asc'" d="M7 11l5-5 5 5M7 17l5-5 5 5"></path>
+              <path *ngIf="sortOrder === 'desc'" d="M7 13l5 5 5-5M7 7l5 5 5-5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classes Grid -->
+  <div class="classes-grid" *ngIf="filteredClasses.length > 0">
+    <div *ngFor="let liveClass of filteredClasses" class="class-card">
+      <!-- Status Badge -->
+      <div class="status-badge" [style.background-color]="getStatusColor(liveClass.status)">
+        <span class="status-dot" *ngIf="liveClass.status === 'live'"></span>
+        {{ liveClass.status | titlecase }}
+      </div>
+
+      <!-- Cover Image -->
+      <div class="class-image">
+        <img [src]="liveClass.coverImage" [alt]="liveClass.title" />
+        <div class="image-overlay">
+          <span class="duration">{{ formatDuration(liveClass.duration) }}</span>
+          <span class="difficulty" [style.background-color]="getDifficultyColor(liveClass.difficulty)">
+            {{ liveClass.difficulty }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Class Info -->
+      <div class="class-info">
+        <h3 class="class-title">{{ liveClass.title }}</h3>
+        <p class="class-description">{{ liveClass.description }}</p>
+
+        <!-- Mentor Info -->
+        <div class="mentor-info">
+          <img [src]="liveClass.mentor.avatar" [alt]="liveClass.mentor.name" class="mentor-avatar" />
+          <div class="mentor-details">
+            <span class="mentor-name">{{ liveClass.mentor.name }}</span>
+            <div class="mentor-expertise">
+              <span *ngFor="let skill of liveClass.mentor.expertise; let last = last" class="expertise-tag">
+                {{ skill }}<span *ngIf="!last">, </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Info -->
+        <div class="schedule-info">
+          <div class="schedule-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>{{ formatDate(liveClass.scheduledDate) }}</span>
+          </div>
+          <div class="schedule-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12,6 12,12 16,14"></polyline>
+            </svg>
+            <span>{{ formatTime(liveClass.scheduledTime) }}</span>
+          </div>
+        </div>
+
+        <!-- Topics -->
+        <div class="topics">
+          <span *ngFor="let topic of liveClass.topics" class="topic-tag">{{ topic }}</span>
+        </div>
+
+        <!-- Participants -->
+        <div class="participants-info">
+          <div class="participants-count">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>{{ liveClass.currentParticipants }}/{{ liveClass.maxParticipants }} participants</span>
+          </div>
+          <div class="participants-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="(liveClass.currentParticipants / liveClass.maxParticipants) * 100"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="price-info">
+          <span class="price">₱{{ liveClass.price.toLocaleString() }}</span>
+          <span class="price-label">per session</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <!-- View Details Button -->
+          <button 
+            (click)="openDetailsModal(liveClass)"
+            class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Details
+          </button>
+
+          <!-- Live Class - Join Button -->
+          <button 
+            *ngIf="liveClass.status === 'live' && liveClass.isRegistered"
+            (click)="joinLiveClass(liveClass)"
+            class="btn btn-live">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5,3 19,12 5,21"></polygon>
+            </svg>
+            Join Live Class
+          </button>
+
+          <!-- Upcoming Class - Register/Unregister -->
+          <button 
+            *ngIf="liveClass.status === 'upcoming' && !liveClass.isRegistered"
+            (click)="registerForClass(liveClass.id)"
+            [disabled]="liveClass.currentParticipants >= liveClass.maxParticipants"
+            class="btn btn-primary"
+            [class.btn-disabled]="liveClass.currentParticipants >= liveClass.maxParticipants">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            {{ liveClass.currentParticipants >= liveClass.maxParticipants ? 'Class Full' : 'Register' }}
+          </button>
+
+          <button 
+            *ngIf="liveClass.status === 'upcoming' && liveClass.isRegistered"
+            (click)="unregisterFromClass(liveClass.id)"
+            class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Registered
+          </button>
+
+          <!-- Ended Class -->
+          <button 
+            *ngIf="liveClass.status === 'ended'"
+            disabled
+            class="btn btn-disabled">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="9,11 12,14 22,4"></polyline>
+            </svg>
+            Class Ended
+          </button>
+
+          <!-- Book Session Button -->
+          <button 
+            (click)="openBookSessionModal(liveClass)"
+            class="btn btn-accent">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Book Session
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredClasses.length === 0" class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <h3>No classes found</h3>
+    <p>Try adjusting your filters or search terms to find live classes.</p>
+  </div>
+</div>
+
+<!-- Book Session Modal -->
+<app-book-session-modal
+  [isOpen]="isBookSessionModalOpen"
+  [mentor]="selectedMentorForBooking"
+  (close)="closeBookSessionModal()"
+  (bookSession)="onSessionBooked($event)">
+</app-book-session-modal>
+
+<!-- Live Class Details Modal -->
+<app-live-class-details-modal
+  [isOpen]="showDetailsModal"
+  [liveClassId]="selectedClassId"
+  [userRole]="'mentee'"
+  (close)="closeDetailsModal()"
+  (enroll)="onClassDetailsEnroll($event)"
+  (join)="onClassDetailsJoin($event)"
+  (edit)="onClassDetailsEdit($event)"
+  (delete)="onClassDetailsDelete($event)">
+</app-live-class-details-modal>

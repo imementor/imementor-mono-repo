@@ -1,0 +1,226 @@
+<div class="badges-container">
+  <!-- Page Header -->
+  <app-page-header 
+    title="Mga Badge"
+    description="Tignan ang inyong nakamit na mga badge at mga maaaring makuha pa"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Stats Overview -->
+  <div class="stats-overview">
+    <div class="stat-card">
+      <div class="stat-icon">🏅</div>
+      <div class="stat-content">
+        <h3>{{ getAchievedBadgesCount() }}</h3>
+        <p>Nakamit na Badge</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-content">
+        <h3>{{ getInProgressBadgesCount() }}</h3>
+        <p>Ginagawa</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✨</div>
+      <div class="stat-content">
+        <h3>{{ getTotalPointsEarned() }}</h3>
+        <p>Total Points</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <h3>{{ getCompletionPercentage() }}%</h3>
+        <p>Completion</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <!-- Category Filter -->
+      <div class="filter-group">
+        <label for="category-filter">Category:</label>
+        <select 
+          id="category-filter"
+          class="filter-select"
+          [(ngModel)]="selectedCategory"
+          (change)="onFilterChange()">
+          <option *ngFor="let option of categoryFilters" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="filter-group">
+        <label for="status-filter">Status:</label>
+        <select 
+          id="status-filter"
+          class="filter-select"
+          [(ngModel)]="selectedStatus"
+          (change)="onFilterChange()">
+          <option *ngFor="let option of statusFilters" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="viewMode = 'grid'; filterBadges()">
+          ⊞
+        </button>
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'list'"
+          (click)="viewMode = 'list'; filterBadges()">
+          ☰
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Count -->
+  <div class="results-info">
+    <span class="results-count">
+      Showing {{ filteredBadges.length }} ng {{ getTotalBadgesCount() }} badges
+    </span>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="filteredBadges.length === 0" class="no-results">
+    <div class="no-results-content">
+      <span class="no-results-icon">🏅</span>
+      <h3>Walang nakitang badge</h3>
+      <p>Subukan ang ibang filter options.</p>
+    </div>
+  </div>
+
+  <!-- Badges Grid/List -->
+  <div *ngIf="filteredBadges.length > 0" class="badges-results" [class.list-view]="viewMode === 'list'">
+    <div class="badges-grid" [class.list-layout]="viewMode === 'list'">
+      <div *ngFor="let badge of filteredBadges" 
+           class="badge-card" 
+           [class.list-item]="viewMode === 'list'"
+           [class.achieved]="badge.isAchieved"
+           [class]="getRarityClass(badge.rarity)">
+        
+        <!-- Badge Header -->
+        <div class="badge-header">
+          <div class="badge-icon-container">
+            <span class="badge-icon" [class.achieved]="badge.isAchieved">{{ badge.icon }}</span>
+            <div class="rarity-border" [style.border-color]="getRarityColor(badge.rarity)"></div>
+            <div *ngIf="badge.isAchieved" class="achieved-checkmark">✓</div>
+          </div>
+          
+          <div class="badge-basic-info">
+            <h3 class="badge-name" [class.achieved]="badge.isAchieved">{{ badge.name }}</h3>
+            <p class="badge-category">
+              <span class="category-icon">{{ getCategoryIcon(badge.category) }}</span>
+              {{ getCategoryLabel(badge.category) }}
+            </p>
+            <div class="badge-rarity" [style.color]="getRarityColor(badge.rarity)">
+              {{ badge.rarity | titlecase }} • {{ badge.points }} points
+            </div>
+          </div>
+
+          <div class="badge-actions">
+            <button class="action-btn" (click)="viewBadgeDetails(badge)" title="View Details">
+              ℹ️
+            </button>
+            <button 
+              *ngIf="badge.isAchieved"
+              class="action-btn" 
+              (click)="shareBadge(badge)" 
+              title="Share Badge">
+              🔗
+            </button>
+          </div>
+        </div>
+
+        <!-- Badge Description -->
+        <div class="badge-description">
+          <p>{{ badge.description }}</p>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="badge-progress" *ngIf="!badge.isAchieved">
+          <div class="progress-info">
+            <span class="progress-label">Progress:</span>
+            <span class="progress-percentage">{{ badge.progress }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" 
+                 [class]="getProgressBarClass(badge)"
+                 [style.width.%]="badge.progress">
+            </div>
+          </div>
+          <div class="requirements-info">
+            <small>{{ badge.requirements.description }}</small>
+          </div>
+        </div>
+
+        <!-- Achievement Date -->
+        <div class="achievement-date" *ngIf="badge.isAchieved && badge.achievedAt">
+          <span class="achievement-label">Nakuha noong:</span>
+          <span class="achievement-date-text">{{ formatDate(badge.achievedAt) }}</span>
+        </div>
+
+        <!-- Claim Button -->
+        <div class="badge-claim" *ngIf="badge.progress >= 100 && !badge.isAchieved">
+          <button class="claim-btn" (click)="claimBadge(badge)">
+            🎉 Claim Badge
+          </button>
+        </div>
+
+        <!-- Next Steps (for incomplete badges) -->
+        <div class="next-steps" *ngIf="!badge.isAchieved && badge.progress < 100">
+          <h4>Next Steps:</h4>
+          <p>{{ badge.requirements.description }}</p>
+          <div class="progress-remaining">
+            <small>
+              <strong>{{ getMath().ceil((100 - badge.progress) * badge.requirements.target / 100) }}</strong> 
+              more {{ badge.requirements.type }} needed
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badge Categories Overview (when showing all) -->
+  <div *ngIf="selectedCategory === 'all' && selectedStatus === 'all'" class="categories-overview">
+    <h2>Badge Categories</h2>
+    <div class="categories-grid">
+      <div *ngFor="let category of badgeCategories" class="category-card" (click)="selectedCategory = category.id; onFilterChange()">
+        <div class="category-icon">{{ category.icon }}</div>
+        <h3>{{ category.name }}</h3>
+        <p>{{ category.description }}</p>
+        <div class="category-stats">
+          <span class="achieved-count">
+            {{ getAchievedBadgesInCategory(category.badges) }}
+          </span>
+          /
+          <span class="total-count">
+            {{ category.badges.length }}
+          </span>
+          badges
+        </div>
+        <div class="category-progress">
+          <div class="progress-bar small">
+            <div class="progress-fill" 
+                 [style.width.%]="getCategoryCompletionPercentage(category.badges)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<div class="homepage-container">
+  <!-- Use the standalone header component -->
+  <app-header 
+    [user]="currentUser"
+    [isSidePanelOpen]="isSidePanelOpen"
+    (toggleSidePanel)="onToggleSidePanel()"
+    (navigateToProfile)="onNavigateToProfile()"
+    (logout)="onLogout()">
+  </app-header>
+
+  <div class="homepage-content">
+    <!-- Use the standalone side panel component -->
+    <app-side-panel 
+      [isOpen]="isSidePanelOpen"
+      [currentPage]="currentPage"
+      [user]="currentUser"
+      (navigate)="onNavigate($event)">
+    </app-side-panel>
+
+    <main class="main-content" [class.sidebar-open]="isSidePanelOpen">
+      <!-- Use the standalone dashboard component when on dashboard page -->
+      <app-dashboard *ngIf="currentPage === 'dashboard'"></app-dashboard>
+      
+      <!-- Use the standalone profile component when on profile page -->
+      <app-profile 
+        *ngIf="currentPage === 'profile'" 
+        [user]="currentUser"
+        (userUpdated)="onUserUpdated($event)">
+      </app-profile>
+      
+      <!-- Use the standalone mentors search component -->
+      <app-mentors-search *ngIf="currentPage === 'mentors-search'"></app-mentors-search>
+      
+      <!-- Use the standalone messages component when on messages page -->
+      <app-messages *ngIf="currentPage === 'messages'"></app-messages>
+      
+      <!-- Use the standalone sessions component when on sessions page -->
+      <app-sessions *ngIf="currentPage === 'sessions'"></app-sessions>
+      
+      <!-- Use the standalone calendar component when on calendar page -->
+      <app-calendar *ngIf="currentPage === 'calendar'"></app-calendar>
+      
+      <!-- Use the standalone badges component when on badges page -->
+      <app-badges *ngIf="currentPage === 'badges'"></app-badges>
+      
+      <!-- Use the standalone learning portal component when on learning-portal page -->
+      <app-learning-portal *ngIf="currentPage === 'learning-portal'"></app-learning-portal>
+      
+      <!-- Use the standalone live classes component when on live-classes page -->
+      <app-live-classes *ngIf="currentPage === 'live-classes'"></app-live-classes>
+      
+      <!-- Use the standalone mentees list component when on mentees-list page (for mentors) -->
+      <app-mentees-list *ngIf="currentPage === 'mentees-list'"></app-mentees-list>
+      
+      <!-- Use the standalone course management component when on course-management page (for mentors) -->
+      <app-course-management *ngIf="currentPage === 'course-management'"></app-course-management>
+      
+      <!-- Use the standalone live class management component when on live-class-management page (for mentors) -->
+      <app-live-class-management *ngIf="currentPage === 'live-class-management'"></app-live-class-management>
+      
+      <!-- Other pages placeholder -->
+      <div *ngIf="currentPage !== 'dashboard' && currentPage !== 'profile' && currentPage !== 'mentors-search' && currentPage !== 'messages' && currentPage !== 'sessions' && currentPage !== 'calendar' && currentPage !== 'badges' && currentPage !== 'learning-portal' && currentPage !== 'live-classes' && currentPage !== 'mentees-list' && currentPage !== 'course-management' && currentPage !== 'live-class-management'" class="page-placeholder">
+        <h2>{{ currentPage | titlecase }} Page</h2>
+        <p>Ang content para sa {{ currentPage }} ay malapit na!</p>
+      </div>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,354 @@
+<div class="course-details-modal" [class.open]="isOpen" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="courseDetails">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="course-header-info">
+        <div class="course-thumbnail">
+          <img [src]="courseDetails.thumbnail" [alt]="courseDetails.title" />
+          <div class="play-preview" *ngIf="courseDetails.previewVideo">
+            <button class="play-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5,3 19,12 5,21"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="course-meta">
+          <div class="course-category">{{ courseDetails.category }}</div>
+          <h1 class="course-title">{{ courseDetails.title }}</h1>
+          <p class="course-description">{{ courseDetails.description }}</p>
+          
+          <div class="course-stats">
+            <div class="stat-item">
+              <span class="stat-icon">⭐</span>
+              <span class="stat-value">{{ courseDetails.rating }}</span>
+              <span class="stat-label">({{ courseDetails.reviewCount }} reviews)</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">👥</span>
+              <span class="stat-value">{{ courseDetails.enrolledStudents.toLocaleString() }}</span>
+              <span class="stat-label">students</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">🕒</span>
+              <span class="stat-value">{{ courseDetails.duration }}</span>
+              <span class="stat-label">total</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">📊</span>
+              <span class="stat-value">{{ courseDetails.level }}</span>
+              <span class="stat-label">level</span>
+            </div>
+          </div>
+
+          <div class="course-tags">
+            <span *ngFor="let tag of courseDetails.tags" class="tag">{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="close-btn" (click)="onClose()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Enrollment Success Message -->
+    <div class="enrollment-success" *ngIf="showEnrollmentConfirmation">
+      <div class="success-content">
+        <div class="success-icon">🎉</div>
+        <h3>Successfully Enrolled!</h3>
+        <p>You can now access all course materials and start learning.</p>
+      </div>
+    </div>
+
+    <!-- Course Action Bar -->
+    <div class="course-action-bar" *ngIf="!courseDetails.isEnrolled">
+      <div class="pricing-info">
+        <span class="price">{{ courseDetails.isPremium ? '₱2,999' : 'FREE' }}</span>
+        <span class="price-note" *ngIf="!courseDetails.isPremium">Full access to all lessons</span>
+      </div>
+      <button class="enroll-btn primary" (click)="enrollInCourse()">
+        {{ courseDetails.isPremium ? 'Enroll Now' : 'Enroll Free' }}
+      </button>
+    </div>
+
+    <!-- Course Navigation Tabs -->
+    <div class="course-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'overview'"
+        (click)="setActiveTab('overview')">
+        Overview
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'curriculum'"
+        (click)="setActiveTab('curriculum')">
+        Curriculum
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'instructor'"
+        (click)="setActiveTab('instructor')">
+        Instructor
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'reviews'"
+        (click)="setActiveTab('reviews')">
+        Reviews
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Overview Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'overview'">
+        <div class="overview-section">
+          <h3>What you'll learn</h3>
+          <div class="learning-outcomes">
+            <div *ngFor="let outcome of courseDetails.whatYouWillLearn" class="outcome-item">
+              <span class="outcome-icon">✅</span>
+              <span class="outcome-text">{{ outcome }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-section">
+          <h3>Requirements</h3>
+          <div class="requirements">
+            <div *ngFor="let requirement of courseDetails.requirements" class="requirement-item">
+              <span class="requirement-icon">•</span>
+              <span class="requirement-text">{{ requirement }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-section">
+          <h3>Course Details</h3>
+          <div class="course-details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Total lessons:</span>
+              <span class="detail-value">{{ courseDetails.totalLessons }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Video duration:</span>
+              <span class="detail-value">{{ courseDetails.totalVideoTime }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Quizzes:</span>
+              <span class="detail-value">{{ courseDetails.totalQuizzes }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Projects:</span>
+              <span class="detail-value">{{ courseDetails.totalProjects }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Language:</span>
+              <span class="detail-value">{{ courseDetails.language }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Certificate:</span>
+              <span class="detail-value">{{ courseDetails.certificateAvailable ? 'Yes' : 'No' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curriculum Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'curriculum'">
+        <div class="curriculum-header">
+          <h3>Course Curriculum</h3>
+          <div class="curriculum-summary">
+            <span>{{ courseDetails.sections.length }} sections</span>
+            <span>•</span>
+            <span>{{ courseDetails.totalLessons }} lessons</span>
+            <span>•</span>
+            <span>{{ courseDetails.totalVideoTime }} total length</span>
+          </div>
+        </div>
+
+        <div class="curriculum-content">
+          <div class="curriculum-sections">
+            <div *ngFor="let section of courseDetails.sections" class="section-item">
+              <div class="section-header" 
+                   [class.active]="selectedSection?.id === section.id"
+                   (click)="selectSection(section)">
+                <div class="section-info">
+                  <h4 class="section-title">{{ section.title }}</h4>
+                  <p class="section-description">{{ section.description }}</p>
+                  <div class="section-meta">
+                    <span>{{ section.lessons.length }} lessons</span>
+                    <span>•</span>
+                    <span>{{ section.duration }}</span>
+                  </div>
+                </div>
+                <div class="section-toggle">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6,9 12,15 18,9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="section-lessons" [class.expanded]="selectedSection?.id === section.id">
+                <div *ngFor="let lesson of section.lessons" 
+                     class="lesson-item"
+                     [class.locked]="lesson.isLocked"
+                     [class.completed]="lesson.isCompleted"
+                     [class.selected]="selectedLesson?.id === lesson.id"
+                     (click)="selectLesson(lesson)">
+                  <div class="lesson-icon">
+                    <span *ngIf="!lesson.isLocked && !lesson.isCompleted">{{ getLessonIcon(lesson.type) }}</span>
+                    <span *ngIf="lesson.isCompleted" class="completed-icon">✅</span>
+                    <span *ngIf="lesson.isLocked" class="locked-icon">🔒</span>
+                  </div>
+                  <div class="lesson-info">
+                    <h5 class="lesson-title">{{ lesson.title }}</h5>
+                    <p class="lesson-description">{{ lesson.description }}</p>
+                    <div class="lesson-meta">
+                      <span class="lesson-type">{{ lesson.type | titlecase }}</span>
+                      <span>•</span>
+                      <span class="lesson-duration">{{ formatDuration(lesson.duration) }}</span>
+                    </div>
+                  </div>
+                  <div class="lesson-actions" *ngIf="!lesson.isLocked">
+                    <button class="play-lesson-btn" (click)="startLesson(lesson); $event.stopPropagation()">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5,3 19,12 5,21"></polygon>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lesson Resources (when a lesson is selected) -->
+          <div class="lesson-resources" *ngIf="selectedLesson && selectedLesson.resources">
+            <h4>Lesson Resources</h4>
+            <div class="resources-list">
+              <div *ngFor="let resource of selectedLesson.resources" class="resource-item">
+                <div class="resource-icon">
+                  <span *ngIf="resource.type === 'pdf'">📄</span>
+                  <span *ngIf="resource.type === 'code'">💻</span>
+                  <span *ngIf="resource.type === 'link'">🔗</span>
+                  <span *ngIf="resource.type === 'image'">🖼️</span>
+                </div>
+                <div class="resource-info">
+                  <span class="resource-title">{{ resource.title }}</span>
+                  <span class="resource-size" *ngIf="resource.size">{{ resource.size }}</span>
+                </div>
+                <button class="download-btn">Download</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructor Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'instructor'">
+        <div class="instructor-profile">
+          <div class="instructor-header">
+            <img [src]="courseDetails.instructor.avatar" [alt]="courseDetails.instructor.name" class="instructor-avatar" />
+            <div class="instructor-info">
+              <h3 class="instructor-name">{{ courseDetails.instructor.name }}</h3>
+              <p class="instructor-bio">{{ courseDetails.instructor.bio }}</p>
+            </div>
+          </div>
+
+          <div class="instructor-stats">
+            <div class="stat-card">
+              <div class="stat-number">{{ courseDetails.instructor.rating }}</div>
+              <div class="stat-label">Rating</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">{{ courseDetails.instructor.studentCount.toLocaleString() }}</div>
+              <div class="stat-label">Students</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">{{ courseDetails.instructor.courseCount }}</div>
+              <div class="stat-label">Courses</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'reviews'">
+        <div class="reviews-section">
+          <div class="reviews-header">
+            <h3>Student Reviews</h3>
+            <div class="rating-summary">
+              <div class="overall-rating">
+                <span class="rating-number">{{ courseDetails.rating }}</span>
+                <div class="rating-stars">
+                  <span *ngFor="let star of [1,2,3,4,5]" 
+                        class="star" 
+                        [class.filled]="star <= courseDetails.rating">⭐</span>
+                </div>
+                <span class="review-count">{{ courseDetails.reviewCount }} reviews</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sample Reviews -->
+          <div class="reviews-list">
+            <div class="review-item">
+              <div class="reviewer-info">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face" alt="Reviewer" class="reviewer-avatar" />
+                <div class="reviewer-details">
+                  <span class="reviewer-name">John Dela Cruz</span>
+                  <div class="review-rating">
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                  </div>
+                </div>
+                <span class="review-date">2 weeks ago</span>
+              </div>
+              <p class="review-text">Excellent course! The instructor explains everything clearly and the projects are very practical. I learned so much about React.</p>
+            </div>
+
+            <div class="review-item">
+              <div class="reviewer-info">
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50&h=50&fit=crop&crop=face" alt="Reviewer" class="reviewer-avatar" />
+                <div class="reviewer-details">
+                  <span class="reviewer-name">Maria Garcia</span>
+                  <div class="review-rating">
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                    <span class="star filled">⭐</span>
+                    <span class="star">⭐</span>
+                  </div>
+                </div>
+                <span class="review-date">1 month ago</span>
+              </div>
+              <p class="review-text">Great content and well-structured lessons. Perfect for beginners who want to learn React step by step.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Enrollment Button (for enrolled users) -->
+    <div class="sticky-action-bar" *ngIf="courseDetails.isEnrolled">
+      <div class="progress-info">
+        <span>Progress: {{ courseDetails.progress }}%</span>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="courseDetails.progress"></div>
+        </div>
+      </div>
+      <button class="continue-learning-btn" *ngIf="selectedLesson" (click)="startLesson(selectedLesson)">
+        Continue Learning
+      </button>
+    </div>
+  </div>
+</div>

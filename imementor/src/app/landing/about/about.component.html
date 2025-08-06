@@ -1,0 +1,25 @@
+<section class="about" id="about">
+  <div class="container">
+    <h2 class="section-title fade-in">Paano Ito Gumagana</h2>
+    <div class="about-content">
+      <div class="about-text">
+        <p>
+          Ang Imementor ay nagdudugtong sa mga taong may kaalaman sa mga nangangailangan ng gabay. 
+          Ito ay tulay na nagbibigay ng pagkakataon sa mga Pilipino na magbahagi ng expertise at magtulungan 
+          sa pag-abot ng mga pangarap.
+        </p>
+        <p>
+          Sa pamamagitan ng aming platform, makakakita kayo ng mga mentor na may karanasan sa inyong 
+          hinahangad na larangan, o kaya naman ay magiging mentor kayo sa mga batang Pilipino na 
+          nangangailangan ng direksyon.
+        </p>
+      </div>
+      <div class="about-features">
+        <div class="feature" *ngFor="let feature of features">
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

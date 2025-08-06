@@ -1,0 +1,638 @@
+<div class="course-management">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Course Management</h1>
+      <p class="page-subtitle">Create and manage your courses, lessons, and materials</p>
+    </div>
+    <div class="header-actions" *ngIf="currentView === 'list'">
+      <button class="btn btn-primary" (click)="createNewCourse()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create Course
+      </button>
+    </div>
+  </div>
+
+  <!-- Course List View -->
+  <div *ngIf="currentView === 'list'" class="course-list-view">
+    <!-- Search and Filter -->
+    <div class="filters-section">
+      <div class="search-container">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          placeholder="Search courses..." 
+          [(ngModel)]="searchQuery"
+          class="search-input">
+      </div>
+      <select [(ngModel)]="filterCategory" class="filter-select">
+        <option value="all">All Categories</option>
+        <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+      </select>
+    </div>
+
+    <!-- Courses Grid -->
+    <div class="courses-grid">
+      <div *ngFor="let course of filteredCourses" class="course-card">
+        <div class="course-header">
+          <div class="course-thumbnail">
+            <img *ngIf="course.thumbnail" [src]="course.thumbnail" [alt]="course.title">
+            <div *ngIf="!course.thumbnail" class="thumbnail-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21,15 16,10 5,21"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="course-status">
+            <span class="status-badge" [ngClass]="getStatusClass(course.isPublished)">
+              {{ course.isPublished ? 'Published' : 'Draft' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="course-content">
+          <h3 class="course-title">{{ course.title }}</h3>
+          <p class="course-description">{{ course.description }}</p>
+          
+          <div class="course-meta">
+            <span class="category">{{ course.category }}</span>
+            <span class="difficulty" [ngClass]="'difficulty-' + course.difficulty">
+              {{ course.difficulty | titlecase }}
+            </span>
+          </div>
+
+          <div class="course-stats">
+            <div class="stat">
+              <span class="stat-value">{{ course.lessons.length }}</span>
+              <span class="stat-label">Lessons</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ course.enrolledStudents }}</span>
+              <span class="stat-label">Students</span>
+            </div>
+            <div class="stat" *ngIf="course.rating > 0">
+              <span class="stat-value">{{ course.rating.toFixed(1) }}</span>
+              <span class="stat-label">Rating</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-actions">
+          <button class="btn btn-secondary" (click)="editCourse(course)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit
+          </button>
+          <button class="btn btn-info" (click)="viewCourseStudents(course)" *ngIf="course.enrolledStudents > 0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Students
+          </button>
+          <button 
+            class="btn" 
+            [ngClass]="course.isPublished ? 'btn-warning' : 'btn-success'"
+            (click)="toggleCoursePublication(course)">
+            {{ course.isPublished ? 'Unpublish' : 'Publish' }}
+          </button>
+          <button class="btn btn-danger" (click)="deleteCourse(course)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3,6 5,6 21,6"></polyline>
+              <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredCourses.length === 0" class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+      <h3>No courses found</h3>
+      <p>{{ searchQuery ? 'Try adjusting your search or filters' : 'Create your first course to get started' }}</p>
+      <button *ngIf="!searchQuery" class="btn btn-primary" (click)="createNewCourse()">Create Course</button>
+    </div>
+  </div>
+
+  <!-- Course Create/Edit View -->
+  <div *ngIf="currentView === 'create' || currentView === 'edit'" class="course-form-view">
+    <div class="form-header">
+      <button class="btn btn-secondary" (click)="goBackToList()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12,19 5,12 12,5"></polyline>
+        </svg>
+        Back to Courses
+      </button>
+      <h2>{{ currentView === 'create' ? 'Create New Course' : 'Edit Course' }}</h2>
+    </div>
+
+    <form class="course-form" (ngSubmit)="saveCourse()">
+      <div class="form-group">
+        <label for="course-title">Course Title *</label>
+        <input 
+          type="text" 
+          id="course-title" 
+          [(ngModel)]="courseForm.title" 
+          name="title"
+          required
+          placeholder="Enter course title">
+      </div>
+
+      <div class="form-group">
+        <label for="course-description">Description *</label>
+        <textarea 
+          id="course-description" 
+          [(ngModel)]="courseForm.description" 
+          name="description"
+          required
+          rows="4"
+          placeholder="Describe what students will learn in this course"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="course-category">Category *</label>
+          <input 
+            type="text" 
+            id="course-category" 
+            [(ngModel)]="courseForm.category" 
+            name="category"
+            required
+            placeholder="e.g., Web Development, Data Science">
+        </div>
+
+        <div class="form-group">
+          <label for="course-difficulty">Difficulty Level *</label>
+          <select id="course-difficulty" [(ngModel)]="courseForm.difficulty" name="difficulty" required>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Thumbnail Upload Section -->
+      <div class="form-group">
+        <label>Course Thumbnail</label>
+        <div class="thumbnail-upload-container">
+          <div 
+            class="thumbnail-upload-area"
+            [class.has-thumbnail]="thumbnailPreview"
+            (dragover)="onThumbnailDragOver($event)"
+            (dragleave)="onThumbnailDragLeave($event)"
+            (drop)="onThumbnailDrop($event)"
+            (click)="triggerThumbnailUpload()">
+            
+            <!-- Thumbnail Preview -->
+            <div *ngIf="thumbnailPreview" class="thumbnail-preview">
+              <img [src]="thumbnailPreview" [alt]="courseForm.title" class="thumbnail-image">
+              <div class="thumbnail-overlay">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="triggerThumbnailUpload(); $event.stopPropagation()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Change
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeThumbnail(); $event.stopPropagation()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+                  </svg>
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Placeholder -->
+            <div *ngIf="!thumbnailPreview" class="thumbnail-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21,15 16,10 5,21"></polyline>
+              </svg>
+              <h4>Upload Course Thumbnail</h4>
+              <p>Drag & drop an image here or click to browse</p>
+              <p class="upload-note">Recommended: 16:9 aspect ratio, max 5MB</p>
+            </div>
+          </div>
+
+          <!-- Hidden File Input -->
+          <input 
+            type="file" 
+            id="thumbnail-upload"
+            accept="image/*"
+            (change)="onThumbnailSelected($event)"
+            style="display: none;">
+        </div>
+      </div>
+
+      <!-- Lessons Section (only for edit view) -->
+      <div *ngIf="currentView === 'edit'" class="lessons-section">
+        <div class="section-header">
+          <h3>Course Lessons</h3>
+          <button type="button" class="btn btn-primary" (click)="addLesson()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Lesson
+          </button>
+        </div>
+
+        <div class="lessons-list">
+          <div *ngFor="let lesson of selectedCourse?.lessons" class="lesson-item">
+            <div class="lesson-info">
+              <h4>{{ lesson.title }}</h4>
+              <p>{{ lesson.description }}</p>
+              <div class="lesson-meta">
+                <span class="material-count">{{ lesson.materials.length }} materials</span>
+                <span class="status-badge" [ngClass]="getStatusClass(lesson.isPublished)">
+                  {{ lesson.isPublished ? 'Published' : 'Draft' }}
+                </span>
+              </div>
+            </div>
+            <div class="lesson-actions">
+              <button type="button" class="btn btn-secondary" (click)="editLesson(lesson)">Edit</button>
+              <button type="button" class="btn btn-danger" (click)="deleteLesson(lesson)">Delete</button>
+            </div>
+          </div>
+
+          <div *ngIf="(selectedCourse?.lessons?.length || 0) === 0" class="empty-lessons">
+            <p>No lessons added yet. Create your first lesson to start building your course.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBackToList()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          {{ currentView === 'create' ? 'Create Course' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lesson Edit View -->
+  <div *ngIf="currentView === 'lesson-edit'" class="lesson-form-view">
+    <div class="form-header">
+      <button class="btn btn-secondary" (click)="goBackToCourse()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12,19 5,12 12,5"></polyline>
+        </svg>
+        Back to Course
+      </button>
+      <h2>{{ selectedLesson ? 'Edit Lesson' : 'Create New Lesson' }}</h2>
+    </div>
+
+    <form class="lesson-form" (ngSubmit)="saveLesson()">
+      <div class="form-group">
+        <label for="lesson-title">Lesson Title *</label>
+        <input 
+          type="text" 
+          id="lesson-title" 
+          [(ngModel)]="lessonForm.title" 
+          name="title"
+          required
+          placeholder="Enter lesson title">
+      </div>
+
+      <div class="form-group">
+        <label for="lesson-description">Description *</label>
+        <textarea 
+          id="lesson-description" 
+          [(ngModel)]="lessonForm.description" 
+          name="description"
+          required
+          rows="3"
+          placeholder="Describe what this lesson covers"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="lesson-order">Lesson Order</label>
+        <input 
+          type="number" 
+          id="lesson-order" 
+          [(ngModel)]="lessonForm.order" 
+          name="order"
+          min="1"
+          placeholder="1">
+      </div>
+
+      <!-- Materials Section -->
+      <div class="materials-section">
+        <div class="section-header">
+          <h3>Lesson Materials</h3>
+          <div class="material-buttons">
+            <button type="button" class="btn btn-secondary" (click)="addMaterial('video')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+              </svg>
+              Add Video
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="addMaterial('pdf')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"></path>
+              </svg>
+              Add PDF
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="addMaterial('note')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              Add Note
+            </button>
+          </div>
+        </div>
+
+        <div class="materials-list">
+          <div *ngFor="let material of lessonForm.materials" class="material-item">
+            <div class="material-icon" [innerHTML]="getMaterialIcon(material.type)"></div>
+            <div class="material-info">
+              <h4>{{ material.title }}</h4>
+              <div class="material-meta">
+                <span class="material-type">{{ material.type | titlecase }}</span>
+                <span *ngIf="material.duration" class="duration">{{ formatDuration(material.duration) }}</span>
+                <span *ngIf="material.fileSize" class="file-size">{{ formatFileSize(material.fileSize) }}</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" (click)="deleteMaterial(material.id)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div *ngIf="!lessonForm.materials || lessonForm.materials.length === 0" class="empty-materials">
+            <p>No materials added yet. Add videos, PDFs, or notes to enhance this lesson.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBackToCourse()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          {{ selectedLesson ? 'Save Lesson' : 'Create Lesson' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Material Modal -->
+  <div *ngIf="showMaterialModal" class="modal-overlay" (click)="showMaterialModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add {{ materialForm.type | titlecase }}</h3>
+        <button class="modal-close" (click)="showMaterialModal = false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form class="material-form" (ngSubmit)="saveMaterial()" #materialFormRef="ngForm">
+        <div class="form-group">
+          <label for="material-title">Title</label>
+          <input 
+            type="text" 
+            id="material-title" 
+            [(ngModel)]="materialForm.title" 
+            name="title"
+            required
+            placeholder="Enter a descriptive title for your material"
+            autocomplete="off">
+        </div>
+
+        <div *ngIf="materialForm.type === 'note'" class="form-group">
+          <label for="material-content">Content</label>
+          <textarea 
+            id="material-content" 
+            [(ngModel)]="materialForm.content" 
+            name="content"
+            required
+            rows="8"
+            placeholder="Write your notes here. You can include explanations, code examples, links, or any relevant information..."
+            autocomplete="off"></textarea>
+        </div>
+
+        <div *ngIf="materialForm.type === 'video' || materialForm.type === 'pdf'" class="form-group">
+          <label>Upload {{ materialForm.type | titlecase }}</label>
+          <div 
+            class="file-upload-area"
+            [ngClass]="{ 'drag-over': isDragOver }"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="fileInput.click()"
+            (keydown.space)="fileInput.click()">
+            <input 
+              type="file" 
+              [accept]="materialForm.type === 'video' ? 'video/*' : '.pdf'"
+              (change)="onFileSelected($event, materialForm.type!)"
+              style="display: none"
+              #fileInput
+              [attr.aria-label]="'Select ' + materialForm.type + ' file'">
+            
+            <div class="upload-content">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17,8 12,3 7,8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p>Drag and drop your {{ materialForm.type }} here, or <button type="button" class="upload-link" (click)="fileInput.click()">browse files</button></p>
+              <small>Maximum file size: {{ materialForm.type === 'video' ? '500MB' : '50MB' }}</small>
+            </div>
+
+            <div *ngIf="materialForm.fileName" class="file-info">
+              <p><strong>Selected:</strong> {{ materialForm.fileName }}</p>
+              <p *ngIf="materialForm.fileSize"><strong>Size:</strong> {{ formatFileSize(materialForm.fileSize) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="showMaterialModal = false">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!materialFormRef.valid">Add Material</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Course Students View -->
+  <div *ngIf="currentView === 'students'" class="students-view">
+    <div class="students-header">
+      <div class="header-left">
+        <button class="btn btn-secondary" (click)="goBackToList()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12,19 5,12 12,5"></polyline>
+          </svg>
+          Back to Courses
+        </button>
+        <div class="course-info">
+          <h2>{{ selectedCourse?.title }}</h2>
+          <p>{{ courseStudents.length }} students enrolled</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="exportStudentProgress()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7,10 12,15 17,10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export Progress
+        </button>
+      </div>
+    </div>
+
+    <!-- Students Filters -->
+    <div class="students-filters">
+      <div class="search-container">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          placeholder="Search students..." 
+          [(ngModel)]="studentSearchQuery"
+          class="search-input">
+      </div>
+      <select [(ngModel)]="studentFilterStatus" class="filter-select">
+        <option *ngFor="let option of studentStatusOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Students List -->
+    <div class="students-list">
+      <div *ngFor="let student of courseStudents" class="student-card">
+        <div class="student-header">
+          <div class="student-avatar">
+            <img *ngIf="student.studentAvatar" [src]="student.studentAvatar" [alt]="student.studentName">
+            <div *ngIf="!student.studentAvatar" class="avatar-placeholder">
+              {{ getInitials(student.studentName) }}
+            </div>
+          </div>
+          <div class="student-info">
+            <h3 class="student-name">{{ student.studentName }}</h3>
+            <p class="student-email">{{ student.studentEmail }}</p>
+            <div class="student-meta">
+              <span class="enrolled-date">Enrolled {{ student.enrolledDate | date:'MMM d, y' }}</span>
+              <span class="last-active">Last active {{ formatLastActive(student.lastActiveDate) }}</span>
+            </div>
+          </div>
+          <div class="student-status">
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(student.progress.status)">
+              {{ student.progress.status | titlecase }}
+            </span>
+          </div>
+        </div>
+
+        <div class="student-progress">
+          <div class="progress-overview">
+            <div class="progress-item">
+              <span class="progress-label">Progress</span>
+              <div class="progress-bar-container">
+                <div class="progress-bar">
+                  <div 
+                    class="progress-fill" 
+                    [style.width.%]="student.progress.progressPercentage"
+                    [style.backgroundColor]="getProgressBarColor(student.progress.progressPercentage)">
+                  </div>
+                </div>
+                <span class="progress-percentage">{{ student.progress.progressPercentage }}%</span>
+              </div>
+            </div>
+            
+            <div class="progress-stats">
+              <div class="stat">
+                <span class="stat-value">{{ student.progress.completedLessons.length }}</span>
+                <span class="stat-label">Lessons Completed</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{{ formatTimeSpent(student.progress.totalTimeSpent) }}</span>
+                <span class="stat-label">Time Spent</span>
+              </div>
+              <div class="stat" *ngIf="student.progress.grade">
+                <span class="stat-value">{{ student.progress.grade }}%</span>
+                <span class="stat-label">Grade</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="current-lesson" *ngIf="student.progress.currentLesson">
+            <span class="current-lesson-label">Current Lesson:</span>
+            <span class="current-lesson-title">
+              {{ getLessonTitle(student.progress.currentLesson) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="student-actions">
+          <button class="btn btn-secondary btn-sm" (click)="viewStudentProfile(student)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            View Profile
+          </button>
+          <button class="btn btn-primary btn-sm" (click)="sendMessageToStudent(student)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Message
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="removeStudentFromCourse(student)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18"></path>
+              <path d="M6 6l12 12"></path>
+            </svg>
+            Remove
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="courseStudents.length === 0" class="empty-students">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <h3>No students found</h3>
+        <p>{{ studentSearchQuery || studentFilterStatus !== 'all' ? 'Try adjusting your search or filters' : 'No students enrolled in this course yet' }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>

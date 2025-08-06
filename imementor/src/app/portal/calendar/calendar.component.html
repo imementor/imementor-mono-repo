@@ -1,0 +1,272 @@
+<div class="calendar-container">
+  <!-- Page Header -->
+  <app-page-header 
+    title="Calendar"
+    description="Tingnan ang inyong mga scheduled sessions sa calendar view"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Calendar Controls -->
+  <div class="calendar-controls">
+    <div class="calendar-navigation">
+      <button class="nav-btn" (click)="previousMonth()">‹</button>
+      <h2 class="current-month">{{ getCurrentMonthYear() }}</h2>
+      <button class="nav-btn" (click)="nextMonth()">›</button>
+    </div>
+
+    <div class="view-controls">
+      <div class="view-toggle">
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'month'"
+          (click)="setViewMode('month')">
+          Month
+        </button>
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'week'"
+          (click)="setViewMode('week')">
+          Week
+        </button>
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'day'"
+          (click)="setViewMode('day')">
+          Day
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Stats -->
+  <div class="calendar-stats">
+    <div class="stat-card">
+      <div class="stat-number">{{ getUpcomingSessionsCount() }}</div>
+      <div class="stat-label">Upcoming Sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ getTodaySessionsCount() }}</div>
+      <div class="stat-label">Today's Sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ getThisWeekSessionsCount() }}</div>
+      <div class="stat-label">This Week</div>
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="calendar-grid" *ngIf="viewMode === 'month'">
+    <!-- Day Headers -->
+    <div class="calendar-header">
+      <div *ngFor="let dayName of dayNames" class="day-header">
+        {{ dayName }}
+      </div>
+    </div>
+
+    <!-- Calendar Days -->
+    <div class="calendar-body">
+      <div 
+        *ngFor="let day of calendarDays" 
+        class="calendar-day"
+        [class.other-month]="!day.isCurrentMonth"
+        [class.today]="day.isToday"
+        [class.has-sessions]="day.sessions.length > 0">
+        
+        <div class="day-number">
+          {{ day.date.getDate() }}
+        </div>
+
+        <div class="day-sessions" *ngIf="day.sessions.length > 0">
+          <div 
+            *ngFor="let session of day.sessions; let i = index" 
+            class="session-item"
+            [style.background-color]="session.color"
+            [class.more-sessions]="i >= 2"
+            (click)="onSessionClick(session)">
+            
+            <div *ngIf="i < 2" class="session-content">
+              <div class="session-time">{{ session.startTime }}</div>
+              <div class="session-title">{{ session.title }}</div>
+              <div class="session-mentor">{{ getMentorName(session.mentor) }}</div>
+            </div>
+            
+            <div *ngIf="i === 2 && day.sessions.length > 2" class="more-indicator">
+              +{{ day.sessions.length - 2 }} more
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week View -->
+  <div class="week-view" *ngIf="viewMode === 'week'">
+    <div class="week-header">
+      <div class="time-column"></div>
+      <div *ngFor="let day of calendarDays.slice(0, 7)" class="week-day-header">
+        <div class="week-day-name">{{ dayNames[day.date.getDay()] }}</div>
+        <div class="week-day-number" [class.today]="day.isToday">{{ day.date.getDate() }}</div>
+      </div>
+    </div>
+    
+    <div class="week-body">
+      <!-- Time slots from 6 AM to 10 PM -->
+      <div *ngFor="let hour of [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]; let i = index" class="time-row">
+        <div class="time-label">
+          {{ hour <= 12 ? (hour === 12 ? '12' : hour) : (hour - 12) }}:00 {{ hour < 12 ? 'AM' : 'PM' }}
+        </div>
+        <div *ngFor="let day of calendarDays.slice(0, 7)" class="time-slot">
+          <div 
+            *ngFor="let session of getSessionsForHour(day, hour)" 
+            class="week-session"
+            [style.background-color]="session.color"
+            (click)="onSessionClick(session)">
+            <div class="week-session-content">
+              <div class="session-title">{{ session.title }}</div>
+              <div class="session-time">{{ session.startTime }} - {{ session.endTime }}</div>
+              <div class="session-mentor">{{ getMentorName(session.mentor) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day View -->
+  <div class="day-view" *ngIf="viewMode === 'day'">
+    <div class="day-view-header">
+      <h3>{{ formatDate(currentDate) }}</h3>
+    </div>
+    
+    <div class="day-sessions-list">
+      <div *ngIf="getSessionsForDate(currentDate).length === 0" class="no-sessions">
+        <div class="no-sessions-content">
+          <span class="no-sessions-icon">📅</span>
+          <h4>Walang session ngayong araw</h4>
+          <p>I-book ang bagong session para sa araw na ito.</p>
+        </div>
+      </div>
+      
+      <div 
+        *ngFor="let session of getSessionsForDate(currentDate)" 
+        class="day-session-card"
+        (click)="onSessionClick(session)">
+        
+        <div class="session-time-badge" [style.background-color]="session.color">
+          {{ session.startTime }}
+        </div>
+        
+        <div class="session-details">
+          <h4 class="session-title">{{ session.title }}</h4>
+          <p class="session-topic">{{ session.topic }}</p>
+          <div class="session-mentor-info">
+            <span class="mentor-name">{{ getMentorName(session.mentor) }}</span>
+            <span class="session-duration">{{ session.duration }} mins</span>
+          </div>
+        </div>
+        
+        <div class="session-status" [class]="getSessionStatusClass(session.status)">
+          {{ getSessionStatusText(session.status) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Details Modal -->
+<div *ngIf="showSessionDetails && selectedSession" class="modal-overlay" (click)="closeSessionDetails()">
+  <div class="session-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Session Details</h3>
+      <button class="close-btn" (click)="closeSessionDetails()">✕</button>
+    </div>
+    
+    <div class="modal-content">
+      <div class="session-info">
+        <div class="session-title-section">
+          <h4>{{ selectedSession.title }}</h4>
+          <span class="session-type-icon">{{ getSessionTypeIcon(selectedSession.sessionType) }}</span>
+        </div>
+        
+        <div class="session-topic">
+          <strong>Topic:</strong> {{ selectedSession.topic }}
+        </div>
+        
+        <div class="session-description">
+          <strong>Description:</strong>
+          <p>{{ selectedSession.description }}</p>
+        </div>
+        
+        <div class="session-schedule">
+          <div class="schedule-item">
+            <strong>Date:</strong> {{ formatDate(selectedSession.date) }}
+          </div>
+          <div class="schedule-item">
+            <strong>Time:</strong> {{ selectedSession.startTime }} - {{ selectedSession.endTime }}
+          </div>
+          <div class="schedule-item">
+            <strong>Duration:</strong> {{ selectedSession.duration }} minutes
+          </div>
+        </div>
+        
+        <div class="session-mentor">
+          <strong>Mentor:</strong>
+          <div class="mentor-info">
+            <span class="mentor-name">{{ getMentorName(selectedSession.mentor) }}</span>
+            <span class="mentor-rating">⭐ {{ selectedSession.mentor.rating }}</span>
+          </div>
+          <div class="mentor-expertise">
+            <span *ngFor="let expertise of selectedSession.mentor.expertise" class="expertise-tag">
+              {{ expertise }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="session-status-section">
+          <strong>Status:</strong>
+          <span class="status-badge" [class]="getSessionStatusClass(selectedSession.status)">
+            {{ getSessionStatusText(selectedSession.status) }}
+          </span>
+        </div>
+        
+        <div *ngIf="selectedSession.meetingLink" class="meeting-link">
+          <strong>Meeting Link:</strong>
+          <a [href]="selectedSession.meetingLink" target="_blank" class="link">
+            {{ selectedSession.meetingLink }}
+          </a>
+        </div>
+        
+        <div *ngIf="selectedSession.location" class="session-location">
+          <strong>Location:</strong> {{ selectedSession.location }}
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button 
+        *ngIf="selectedSession.status === 'upcoming' && selectedSession.sessionType === 'video-call'"
+        class="action-btn primary"
+        (click)="joinSession(selectedSession)">
+        Join Session
+      </button>
+      
+      <button 
+        *ngIf="selectedSession.status === 'upcoming'"
+        class="action-btn secondary"
+        (click)="rescheduleSession(selectedSession)">
+        Reschedule
+      </button>
+      
+      <button 
+        *ngIf="selectedSession.status === 'upcoming'"
+        class="action-btn danger"
+        (click)="cancelSession(selectedSession)">
+        Cancel Session
+      </button>
+      
+      <button class="action-btn secondary" (click)="closeSessionDetails()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>

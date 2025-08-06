@@ -1,0 +1,317 @@
+<div class="mentors-search-container">
+  <!-- Page Header -->
+  <app-page-header 
+    title="Humanap ng Mentor"
+    description="Maghanap ng expert mentor na makakatulong sa inyong journey"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Search and Filters Section -->
+  <div class="search-filters-section">
+    <div class="search-bar">
+      <div class="search-input-container">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Maghanap ng mentor, skill, o expertise..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()">
+        <button 
+          *ngIf="searchTerm"
+          class="clear-search-btn"
+          (click)="searchTerm = ''; onSearchChange()">
+          ❌
+        </button>
+      </div>
+    </div>
+
+    <div class="filters-container">
+      <div class="filters-row">
+        <!-- Field Filter -->
+        <div class="filter-group">
+          <label for="field-filter">Field:</label>
+          <select 
+            id="field-filter"
+            class="filter-select"
+            [(ngModel)]="selectedField"
+            (change)="onFilterChange()">
+            <option *ngFor="let option of fieldOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Skill Filter -->
+        <div class="filter-group">
+          <label for="skill-filter">Skill:</label>
+          <select 
+            id="skill-filter"
+            class="filter-select"
+            [(ngModel)]="selectedSkill"
+            (change)="onFilterChange()">
+            <option *ngFor="let option of skillOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Expertise Filter -->
+        <div class="filter-group">
+          <label for="expertise-filter">Expertise:</label>
+          <select 
+            id="expertise-filter"
+            class="filter-select"
+            [(ngModel)]="selectedExpertise"
+            (change)="onFilterChange()">
+            <option *ngFor="let option of expertiseOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filters-row">
+        <!-- Online Only Filter -->
+        <div class="filter-group checkbox-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox"
+              [(ngModel)]="showOnlineOnly"
+              (change)="onFilterChange()">
+            <span class="checkmark"></span>
+            Online lang
+          </label>
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="filter-group">
+          <label for="rating-filter">Min Rating:</label>
+          <select 
+            id="rating-filter"
+            class="filter-select"
+            [(ngModel)]="minRating"
+            (change)="onFilterChange()">
+            <option value="0">Lahat</option>
+            <option value="4.5">4.5+ ⭐</option>
+            <option value="4.0">4.0+ ⭐</option>
+            <option value="3.5">3.5+ ⭐</option>
+          </select>
+        </div>
+
+        <!-- Rate Filter -->
+        <div class="filter-group">
+          <label for="rate-filter">Max Rate:</label>
+          <select 
+            id="rate-filter"
+            class="filter-select"
+            [(ngModel)]="maxHourlyRate"
+            (change)="onFilterChange()">
+            <option value="0">Walang limit</option>
+            <option value="2000">₱2,000/hr</option>
+            <option value="3000">₱3,000/hr</option>
+            <option value="4000">₱4,000/hr</option>
+            <option value="5000">₱5,000/hr</option>
+          </select>
+        </div>
+
+        <!-- Clear Filters -->
+        <div class="filter-group">
+          <button class="clear-filters-btn" (click)="clearFilters()">
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Header -->
+  <div class="results-header">
+    <div class="results-info">
+      <span class="results-count">
+        {{ getFilteredCount() }} ng {{ getTotalCount() }} mentors
+      </span>
+    </div>
+
+    <div class="results-controls">
+      <!-- Sort Options -->
+      <div class="sort-group">
+        <label for="sort-select">Sort by:</label>
+        <select 
+          id="sort-select"
+          class="sort-select"
+          [(ngModel)]="sortBy"
+          (change)="filterMentors()">
+          <option *ngFor="let option of sortOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="viewMode = 'grid'; filterMentors()">
+          ⊞
+        </button>
+        <button 
+          class="view-btn"
+          [class.active]="viewMode === 'list'"
+          (click)="viewMode = 'list'; filterMentors()">
+          ☰
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="filteredMentors.length === 0" class="no-results">
+    <div class="no-results-content">
+      <span class="no-results-icon">🔍</span>
+      <h3>Walang nakitang mentor</h3>
+      <p>Subukan ang ibang search terms o i-adjust ang mga filters.</p>
+      <button class="clear-filters-btn" (click)="clearFilters()">
+        Clear All Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Mentors Results -->
+  <div *ngIf="filteredMentors.length > 0" class="mentors-results" [class.list-view]="viewMode === 'list'">
+    <div class="mentors-grid" [class.list-layout]="viewMode === 'list'">
+      <div *ngFor="let mentor of filteredMentors" class="mentor-card" [class.list-item]="viewMode === 'list'">
+        
+        <!-- Mentor Avatar and Basic Info -->
+        <div class="mentor-header">
+          <div class="mentor-avatar">
+            <img 
+              *ngIf="mentor.avatar" 
+              [src]="mentor.avatar" 
+              [alt]="mentor.firstName + ' ' + mentor.lastName"
+              class="avatar-img">
+            <div *ngIf="!mentor.avatar" class="avatar-placeholder">
+              {{ getMentorInitials(mentor) }}
+            </div>
+            <div class="online-indicator" [class]="mentor.isOnline ? 'online' : 'offline'"></div>
+          </div>
+          
+          <div class="mentor-basic-info">
+            <h3 class="mentor-name">{{ mentor.firstName }} {{ mentor.lastName }}</h3>
+            <p class="mentor-location">📍 {{ mentor.location }}</p>
+            <div class="mentor-rating">
+              <span class="rating-stars">⭐ {{ mentor.rating }}</span>
+              <span class="rating-count">({{ mentor.reviewCount }} reviews)</span>
+            </div>
+          </div>
+
+          <div class="mentor-actions">
+            <button class="favorite-btn" (click)="addToFavorites(mentor)">❤️</button>
+          </div>
+        </div>
+
+        <!-- Mentor Details -->
+        <div class="mentor-details">
+          <div class="mentor-field">
+            <strong>Field:</strong> 
+            <span class="field-tag">{{ getFieldLabel(mentor.field) }}</span>
+          </div>
+
+          <div class="mentor-expertise">
+            <strong>Expertise:</strong>
+            <div class="expertise-tags">
+              <span *ngFor="let expertise of mentor.expertise" class="expertise-tag">
+                {{ expertise }}
+              </span>
+            </div>
+          </div>
+
+          <div class="mentor-skills">
+            <strong>Skills:</strong>
+            <div class="skills-tags">
+              <span *ngFor="let skill of mentor.skills" class="skill-tag">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <div class="mentor-bio">
+            <p>{{ mentor.bio }}</p>
+          </div>
+        </div>
+
+        <!-- Mentor Stats -->
+        <div class="mentor-stats">
+          <div class="stat-item">
+            <span class="stat-icon">👨‍💼</span>
+            <span class="stat-text">{{ mentor.experience }} years</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">📚</span>
+            <span class="stat-text">{{ mentor.totalSessions }} sessions</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">⏱️</span>
+            <span class="stat-text">{{ mentor.responseTime }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">💰</span>
+            <span class="stat-text">{{ formatHourlyRate(mentor.hourlyRate) }}</span>
+          </div>
+        </div>
+
+        <!-- Availability -->
+        <div class="mentor-availability" [class]="getAvailabilityClass(mentor)">
+          <span class="availability-text">{{ getAvailabilityText(mentor) }}</span>
+        </div>
+
+        <!-- Session Types -->
+        <div class="session-types">
+          <span class="session-types-label">Session types:</span>
+          <div class="session-type-icons">
+            <span *ngIf="mentor.sessionTypes.includes('video-call')" class="session-type" title="Video Call">📹</span>
+            <span *ngIf="mentor.sessionTypes.includes('chat')" class="session-type" title="Chat">💬</span>
+            <span *ngIf="mentor.sessionTypes.includes('in-person')" class="session-type" title="In Person">🤝</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mentor-card-actions">
+          <button class="action-btn primary" (click)="viewMentorProfile(mentor)">
+            View Profile
+          </button>
+          <button 
+            class="action-btn secondary" 
+            (click)="sendMessageToMentor(mentor)"
+            [disabled]="!mentor.isOnline">
+            Send Message
+          </button>
+          <button 
+            class="action-btn primary" 
+            (click)="bookSessionWithMentor(mentor)"
+            [disabled]="!mentor.availability.available">
+            Book Session
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Book Session Modal -->
+<app-book-session-modal
+  [isOpen]="isBookSessionModalOpen"
+  [mentor]="selectedMentorForBooking"
+  (close)="closeBookSessionModal()"
+  (bookSession)="onSessionBooked($event)">
+</app-book-session-modal>
+
+<!-- Mentor Profile Modal -->
+<app-mentor-profile-modal
+  [isOpen]="isMentorProfileModalOpen"
+  [mentorId]="selectedMentorId"
+  (close)="closeMentorProfileModal()"
+  (bookSession)="onBookSessionFromProfile($event)"
+  (sendMessage)="onSendMessageFromProfile($event)">
+</app-mentor-profile-modal>

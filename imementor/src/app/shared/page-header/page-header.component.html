@@ -1,0 +1,30 @@
+<div class="page-header">
+  <div class="header-left">
+    <button 
+      *ngIf="showBackButton"
+      class="back-button" 
+      (click)="onBackClick()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Bumalik
+    </button>
+    
+    <div class="header-titles">
+      <h1 class="page-title">{{ title }}</h1>
+      <p *ngIf="subtitle" class="page-subtitle">{{ subtitle }}</p>
+    </div>
+  </div>
+
+  <div class="header-actions" *ngIf="actions.length > 0">
+    <button 
+      *ngFor="let action of actions"
+      class="action-button"
+      [ngClass]="action.class"
+      [disabled]="action.disabled"
+      (click)="action.action()">
+      <span *ngIf="action.icon">{{ action.icon }}</span>
+      {{ action.label }}
+    </button>
+  </div>
+</div>

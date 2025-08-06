@@ -1,0 +1,97 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p>Kumusta ka ngayong araw!</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div 
+      *ngFor="let card of dashboardCards" 
+      class="stat-card"
+      [ngClass]="'card-' + card.color">
+      <div class="stat-icon">
+        {{ card.icon }}
+      </div>
+      <div class="stat-content">
+        <h3>{{ card.title }}</h3>
+        <div class="stat-value">{{ card.value }}</div>
+        <div *ngIf="card.trend" class="stat-trend" [ngClass]="{ 'positive': card.trend.isPositive }">
+          {{ card.trend.value }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Recent Activity -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>Mga Kamakailang Aktibidad</h2>
+        <button class="view-all-btn">Tignan lahat</button>
+      </div>
+      <div class="activity-list">
+        <div *ngFor="let activity of recentActivities" class="activity-item">
+          <div class="activity-icon">
+            {{ activity.icon }}
+          </div>
+          <div class="activity-content">
+            <h4>{{ activity.title }}</h4>
+            <p>{{ activity.description }}</p>
+            <span class="activity-time">{{ activity.time }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Sessions -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>Mga Susunod na Session</h2>
+        <button class="view-all-btn">Tignan lahat</button>
+      </div>
+      <div class="sessions-list">
+        <div *ngFor="let session of upcomingSessions" class="session-item">
+          <div class="session-date">
+            <span class="session-day">{{ session.date }}</span>
+            <span class="session-time">{{ session.time }}</span>
+          </div>
+          <div class="session-content">
+            <h4>{{ session.title }}</h4>
+            <div class="session-details">
+              <span class="session-participant">{{ session.participant }}</span>
+              <span class="session-type">{{ session.type }}</span>
+            </div>
+          </div>
+          <div class="session-actions">
+            <button class="btn-primary">Sumali</button>
+            <button class="btn-secondary">Detalye</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h3>Mga Mabilis na Aksyon</h3>
+    <div class="actions-grid">
+      <button class="action-btn">
+        <span class="action-icon">📝</span>
+        <span>Mag-schedule ng Session</span>
+      </button>
+      <button class="action-btn">
+        <span class="action-icon">💬</span>
+        <span>Magpadala ng Mensahe</span>
+      </button>
+      <button class="action-btn">
+        <span class="action-icon">📚</span>
+        <span>Mag-upload ng Resource</span>
+      </button>
+      <button class="action-btn">
+        <span class="action-icon">👤</span>
+        <span>I-update ang Profile</span>
+      </button>
+    </div>
+  </div>
+</div>

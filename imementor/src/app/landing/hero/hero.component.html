@@ -1,0 +1,65 @@
+<section class="hero" id="home">
+  <div class="hero-video-container">
+    <video 
+      #heroVideo
+      class="hero-video" 
+      autoplay 
+      muted 
+      loop 
+      playsinline
+      (error)="onVideoError()">
+      <!-- Students and mentorship focused video sources -->
+      <source src="https://videos.pexels.com/video-files/8927486/8927486-hd_1920_1080_30fps.mp4" type="video/mp4">
+      <!-- Students collaborating and learning together -->
+      <source src="https://videos.pexels.com/video-files/5198252/5198252-hd_1920_1080_30fps.mp4" type="video/mp4">
+      <!-- Teacher mentoring students -->
+      <source src="https://videos.pexels.com/video-files/8926987/8926987-hd_1920_1080_30fps.mp4" type="video/mp4">
+      <!-- Students studying and discussing -->
+      <source src="https://videos.pexels.com/video-files/6985277/6985277-hd_1920_1080_30fps.mp4" type="video/mp4">
+      <!-- University students learning -->
+      <source src="https://videos.pexels.com/video-files/3196588/3196588-hd_1920_1080_25fps.mp4" type="video/mp4">
+      <!-- Students working on laptops -->
+      <source src="https://videos.pexels.com/video-files/5198239/5198239-hd_1920_1080_30fps.mp4" type="video/mp4">
+      <!-- Fallback: Learning environment -->
+      Your browser does not support the video tag.
+    </video>
+    <div class="video-overlay"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-logo">
+      <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hero-gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="hero-gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="hero-gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+          </linearGradient>
+          <marker id="hero-arrowhead" markerWidth="8" markerHeight="6" 
+           refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="url(#hero-gradient3)" />
+          </marker>
+        </defs>
+        
+        <!-- Main mentor figure (larger circle) -->
+        <circle cx="75" cy="85" r="22" fill="url(#hero-gradient1)"/>
+        
+        <!-- Mentee figure (smaller circle) -->
+        <circle cx="125" cy="95" r="16" fill="url(#hero-gradient2)"/>
+        
+        <!-- Connection arrow -->
+        <path d="M 97 89 L 109 92" stroke="url(#hero-gradient3)" stroke-width="3" fill="none" marker-end="url(#hero-arrowhead)"/>
+      </svg>
+    </div>
+    <h1 class="brand-title">IMementor</h1>
+    <h2>Magkakapit. Matuto. Umunlad.</h2>
+    <p>Tulay sa pagitan ng kaalaman at pagkakataon. Makipag-ugnayan sa mga eksperto o ibahagi ang inyong kaalaman sa mga susunod na henerasyon - sama-sama nating abutin ang pangarap!</p>
+    <a (click)="scrollTo('about')" class="cta-button">Simulan Natin Ngayon!</a>
+  </div>
+</section>

@@ -1,0 +1,54 @@
+<section class="founders" id="founders">
+  <div class="container">
+    <h2 class="section-title">Meet ang mga Founders</h2>
+    <p class="section-subtitle">
+      Ang mga taong nag-inspire sa vision ng IMementor - mga Pilipinong may pangarap na magkakaroon ng equal opportunities para sa lahat.
+    </p>
+    
+    <div class="founders-grid">
+      <div 
+        *ngFor="let founder of founders; trackBy: trackByFounderId"
+        class="founder-card"
+        [attr.data-founder-id]="founder.id">
+        
+        <div class="founder-avatar">
+          <span class="founder-initials">{{ founder.initials }}</span>
+          <div class="avatar-glow"></div>
+        </div>
+        
+        <div class="founder-content">
+          <h3 class="founder-name">{{ founder.name }}</h3>
+          <p class="founder-role">{{ founder.role }}</p>
+          <p class="founder-bio">{{ founder.bio }}</p>
+          
+          <div class="founder-expertise">
+            <h4>Expertise:</h4>
+            <ul class="expertise-list">
+              <li *ngFor="let skill of founder.expertise" class="expertise-item">
+                {{ skill }}
+              </li>
+            </ul>
+          </div>
+          
+          <div class="founder-vision">
+            <h4>Vision:</h4>
+            <blockquote class="vision-quote">
+              "{{ founder.vision }}"
+            </blockquote>
+          </div>
+          
+          <div class="founder-background">
+            <h4>Background:</h4>
+            <p class="background-text">{{ founder.background }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="founders-cta">
+      <h3>Join our Mission</h3>
+      <p>Gusto mo ring maging parte ng pagbabago? Makipag-ugnayan sa amin!</p>
+      <a (click)="scrollTo('contact')" class="cta-button">Get in Touch</a>
+    </div>
+  </div>
+</section>

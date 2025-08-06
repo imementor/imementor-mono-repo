@@ -1,0 +1,373 @@
+<div class="mentor-setup-container">
+  <!-- Header -->
+  <div class="setup-header">
+    <div class="header-content">
+      <h1>🎓 Mentor Setup</h1>
+      <p>Isetup natin ang inyong mentor profile para makahanap ng mga estudyanteng matutulungan</p>
+      
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+        </div>
+        <span class="progress-text">Step {{ currentStep }} ng {{ totalSteps }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps Navigation -->
+  <div class="steps-nav">
+    <div 
+      *ngFor="let step of [1,2,3,4,5]; let i = index"
+      class="step-indicator"
+      [class.active]="currentStep === step"
+      [class.completed]="currentStep > step"
+      (click)="goToStep(step)">
+      <div class="step-number">{{ step }}</div>
+      <div class="step-label">
+        <ng-container [ngSwitch]="step">
+          <span *ngSwitchCase="1">Profile</span>
+          <span *ngSwitchCase="2">Skills</span>
+          <span *ngSwitchCase="3">Expertise</span>
+          <span *ngSwitchCase="4">Availability</span>
+          <span *ngSwitchCase="5">Review</span>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="setup-content">
+    <form [formGroup]="setupForm">
+      
+      <!-- Step 1: Profile & Bio -->
+      <div *ngIf="currentStep === 1" class="step-content">
+        <div class="step-header">
+          <h2>📝 Profile at Bio</h2>
+          <p>Sabihin sa amin ang tungkol sa inyong sarili at experience</p>
+        </div>
+
+        <!-- Profile Picture Upload -->
+        <div class="profile-upload-section">
+          <div class="upload-container">
+            <div class="profile-preview">
+              <div 
+                class="profile-image"
+                [style.background-image]="setupData.profilePicture ? 'url(' + setupData.profilePicture + ')' : 'none'">
+                <span *ngIf="!setupData.profilePicture" class="placeholder-icon">👤</span>
+              </div>
+              <div class="upload-overlay">
+                <input type="file" id="profile-upload" accept="image/*" (change)="onFileSelected($event)" hidden>
+                <label for="profile-upload" class="upload-button">
+                  📷 {{ setupData.profilePicture ? 'Palitan' : 'Maglagay ng' }} Profile Picture
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group">
+          <label for="bio">Bio / About Me *</label>
+          <textarea 
+            id="bio" 
+            formControlName="bio"
+            rows="4"
+            placeholder="Sabihin sa mga estudyante kung sino kayo, ano ang inyong background, at bakit gusto ninyong maging mentor..."></textarea>
+          <div class="character-count">{{ setupForm.get('bio')?.value?.length || 0 }}/500</div>
+          <div class="error-message" *ngIf="setupForm.get('bio')?.invalid && setupForm.get('bio')?.touched">
+            Kailangan ng bio na may 50-500 characters
+          </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="form-group">
+          <label for="experience">Professional Experience *</label>
+          <textarea 
+            id="experience" 
+            formControlName="experience"
+            rows="4"
+            placeholder="Sabihin ang inyong work experience, education background, projects na nagawa, at mga achievements..."></textarea>
+          <div class="error-message" *ngIf="setupForm.get('experience')?.invalid && setupForm.get('experience')?.touched">
+            Kailangan ng detailed experience (minimum 100 characters)
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Skills -->
+      <div *ngIf="currentStep === 2" class="step-content">
+        <div class="step-header">
+          <h2>🔧 Skills at Technical Knowledge</h2>
+          <p>Piliin ang mga skills na kaya ninyong ituro (minimum 3)</p>
+        </div>
+
+        <div class="skills-selection">
+          <div *ngFor="let category of getSkillCategories()" class="skill-category">
+            <h3>{{ category }}</h3>
+            <div class="skills-grid">
+              <div 
+                *ngFor="let skill of getSkillsByCategory(category)"
+                class="skill-item"
+                [class.selected]="setupData.skills.includes(skill.id)"
+                (click)="onSkillToggle(skill.id)">
+                <span class="skill-name">{{ skill.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="selected-skills-preview" *ngIf="setupData.skills.length > 0">
+          <h4>Selected Skills ({{ setupData.skills.length }})</h4>
+          <div class="selected-skills">
+            <span 
+              *ngFor="let skillId of setupData.skills"
+              class="selected-skill">
+              {{ getSkillName(skillId) }}
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="setupData.skills.length < 3" class="validation-message">
+          Kailangan ng minimum 3 skills para sa susunod na step
+        </div>
+      </div>
+
+      <!-- Step 3: Expertise & Specialization -->
+      <div *ngIf="currentStep === 3" class="step-content">
+        <div class="step-header">
+          <h2>🎓 Expertise at Specialization</h2>
+          <p>Ano ang inyong main field of expertise?</p>
+        </div>
+
+        <!-- Expertise Fields -->
+        <div class="expertise-selection">
+          <h3>Mga Field of Expertise</h3>
+          <div class="expertise-grid">
+            <div 
+              *ngFor="let field of availableExpertiseFields"
+              class="expertise-item"
+              [class.selected]="setupData.expertiseFields.includes(field.id)"
+              (click)="onExpertiseToggle(field.id)">
+              <h4>{{ field.name }}</h4>
+              <p>{{ field.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specialization -->
+        <div class="form-group">
+          <label for="specialization">Specific Specialization *</label>
+          <input 
+            type="text" 
+            id="specialization" 
+            formControlName="specialization"
+            placeholder="e.g., Frontend Development with React, Data Science with Python...">
+          <div class="error-message" *ngIf="setupForm.get('specialization')?.invalid && setupForm.get('specialization')?.touched">
+            Kailangan ng specific specialization
+          </div>
+        </div>
+
+        <!-- Years of Experience -->
+        <div class="form-group">
+          <label for="yearsOfExperience">Years of Experience *</label>
+          <input 
+            type="number" 
+            id="yearsOfExperience" 
+            formControlName="yearsOfExperience"
+            min="1" 
+            max="50"
+            placeholder="Ilang taon na kayong may experience?">
+          <div class="error-message" *ngIf="setupForm.get('yearsOfExperience')?.invalid && setupForm.get('yearsOfExperience')?.touched">
+            Kailangan ng valid years of experience (1-50)
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Availability & Preferences -->
+      <div *ngIf="currentStep === 4" class="step-content">
+        <div class="step-header">
+          <h2>📅 Availability at Preferences</h2>
+          <p>Kailan kayo available at ano ang inyong preferred mentoring style?</p>
+        </div>
+
+        <!-- Available Days -->
+        <div class="availability-section">
+          <h3>Available Days (minimum 2)</h3>
+          <div class="days-grid">
+            <div 
+              *ngFor="let day of availableDays"
+              class="day-item"
+              [class.selected]="setupData.availability.days.includes(day)"
+              (click)="onDayToggle(day)">
+              {{ day }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Time Slots -->
+        <div class="time-slots-section">
+          <h3>Available Time Slots</h3>
+          <div class="time-slots-grid">
+            <div 
+              *ngFor="let timeSlot of availableTimeSlots"
+              class="time-slot-item"
+              [class.selected]="setupData.availability.timeSlots.includes(timeSlot)"
+              (click)="onTimeSlotToggle(timeSlot)">
+              {{ timeSlot }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Preferred Mentee Level -->
+        <div class="mentee-level-section">
+          <h3>Preferred Mentee Level</h3>
+          <div class="mentee-levels-grid">
+            <div 
+              *ngFor="let level of menteelevels"
+              class="level-item"
+              [class.selected]="setupData.preferredMenteeLevel.includes(level)"
+              (click)="onMenteeLevelToggle(level)">
+              {{ level }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Mentorship Style -->
+        <div class="form-group">
+          <label for="mentorshipStyle">Mentorship Style *</label>
+          <select id="mentorshipStyle" formControlName="mentorshipStyle">
+            <option value="">Piliin ang inyong mentorship style</option>
+            <option *ngFor="let style of mentorshipStyles" [value]="style">{{ style }}</option>
+          </select>
+          <div class="error-message" *ngIf="setupForm.get('mentorshipStyle')?.invalid && setupForm.get('mentorshipStyle')?.touched">
+            Kailangan pumili ng mentorship style
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Review & Final -->
+      <div *ngIf="currentStep === 5" class="step-content">
+        <div class="step-header">
+          <h2>✅ Review at Final Details</h2>
+          <p>I-review ang mga na-input ninyo at magdagdag ng optional links</p>
+        </div>
+
+        <!-- Review Summary -->
+        <div class="review-summary">
+          <div class="summary-section">
+            <h3>👤 Profile</h3>
+            <div class="summary-item">
+              <strong>Bio:</strong> {{ setupData.bio }}
+            </div>
+            <div class="summary-item">
+              <strong>Experience:</strong> {{ setupData.experience }}
+            </div>
+          </div>
+
+          <div class="summary-section">
+            <h3>🔧 Skills ({{ setupData.skills.length }})</h3>
+            <div class="skills-summary">
+              <span 
+                *ngFor="let skillId of setupData.skills"
+                class="skill-tag">
+                {{ getSkillName(skillId) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="summary-section">
+            <h3>🎓 Expertise</h3>
+            <div class="summary-item">
+              <strong>Fields:</strong> 
+              <span *ngFor="let fieldId of setupData.expertiseFields; let last = last">
+                {{ getExpertiseFieldName(fieldId) }}<span *ngIf="!last">, </span>
+              </span>
+            </div>
+            <div class="summary-item">
+              <strong>Specialization:</strong> {{ setupData.specialization }}
+            </div>
+            <div class="summary-item">
+              <strong>Experience:</strong> {{ setupData.yearsOfExperience }} taon
+            </div>
+          </div>
+
+          <div class="summary-section">
+            <h3>📅 Availability</h3>
+            <div class="summary-item">
+              <strong>Days:</strong> {{ setupData.availability.days.join(', ') }}
+            </div>
+            <div class="summary-item">
+              <strong>Time Slots:</strong> {{ setupData.availability.timeSlots.join(', ') }}
+            </div>
+            <div class="summary-item">
+              <strong>Mentee Level:</strong> {{ setupData.preferredMenteeLevel.join(', ') }}
+            </div>
+            <div class="summary-item">
+              <strong>Style:</strong> {{ setupData.mentorshipStyle }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Fields -->
+        <div class="optional-fields">
+          <h3>📎 Optional Links</h3>
+          <div class="form-group">
+            <label for="portfolio">Portfolio/Website</label>
+            <input 
+              type="url" 
+              id="portfolio" 
+              formControlName="portfolio"
+              placeholder="https://inyong-portfolio.com">
+          </div>
+          <div class="form-group">
+            <label for="linkedIn">LinkedIn Profile</label>
+            <input 
+              type="text" 
+              id="linkedIn" 
+              formControlName="linkedIn"
+              placeholder="linkedin.com/in/inyong-profile">
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button 
+      *ngIf="currentStep > 1"
+      type="button" 
+      class="btn-secondary" 
+      (click)="prevStep()">
+      ← Previous
+    </button>
+    
+    <button 
+      type="button" 
+      class="btn-cancel" 
+      (click)="cancelSetup()">
+      Cancel
+    </button>
+    
+    <div class="spacer"></div>
+    
+    <button 
+      *ngIf="currentStep < totalSteps"
+      type="button" 
+      class="btn-primary" 
+      [disabled]="!isStepValid()"
+      (click)="nextStep()">
+      Next →
+    </button>
+    
+    <button 
+      *ngIf="currentStep === totalSteps"
+      type="button" 
+      class="btn-success" 
+      [disabled]="isLoading"
+      (click)="completeSetup()">
+      <span *ngIf="!isLoading">🎉 Complete Setup</span>
+      <span *ngIf="isLoading">⏳ Processing...</span>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,199 @@
+<div class="sessions-container">
+  <!-- Page Header -->
+  <app-page-header 
+    title="Mga Sessions" 
+    subtitle="Makita at pamahalaan ang lahat ng inyong mentoring sessions"
+    [actions]="headerActions">
+  </app-page-header>
+    <!-- Statistics Cards -->
+    <div class="stats-cards">
+      <div class="stat-card upcoming">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getUpcomingSessionsCount() }}</div>
+          <div class="stat-label">Darating na Sessions</div>
+        </div>
+      </div>
+      <div class="stat-card ongoing">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getOngoingSessionsCount() }}</div>
+          <div class="stat-label">Kasalukuyang Session</div>
+        </div>
+      </div>
+      <div class="stat-card completed">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getCompletedSessionsCount() }}</div>
+          <div class="stat-label">Natapos na Sessions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="filters-section">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (input)="onSearchChange()"
+            placeholder="Maghanap ng session, topic, o mentor..."
+            class="search-input">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+
+      <div class="filters-container">
+        <div class="filter-group">
+          <label>Status:</label>
+          <select [(ngModel)]="selectedFilter" (change)="onFilterChange()" class="filter-select">
+            <option *ngFor="let filter of statusFilters" [value]="filter.value">
+              {{ filter.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Petsa:</label>
+          <select [(ngModel)]="selectedDateFilter" (change)="onFilterChange()" class="filter-select">
+            <option *ngFor="let filter of dateFilters" [value]="filter.value">
+              {{ filter.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sessions List -->
+    <div class="sessions-list">
+      <div class="sessions-count">
+        <span>{{ filteredSessions.length }} sessions nahanap</span>
+      </div>
+
+      <div class="sessions-grid" *ngIf="filteredSessions.length > 0; else noSessions">
+        <div 
+          class="session-card" 
+          *ngFor="let session of filteredSessions"
+          [class]="getStatusClass(session.status)"
+          (click)="viewSessionDetails(session)">
+          
+          <!-- Session Header -->
+          <div class="session-header">
+            <div class="session-type-badge">
+              <span class="session-type-icon">{{ getSessionTypeIcon(session.sessionType) }}</span>
+              <span class="session-type-text">{{ session.sessionType === 'video-call' ? 'Video Call' : session.sessionType === 'chat' ? 'Chat' : 'In-Person' }}</span>
+            </div>
+            <div class="session-status">
+              <span class="status-badge" [class]="getStatusClass(session.status)">
+                {{ getStatusText(session.status) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Session Main Content -->
+          <div class="session-main">
+            <div class="session-info">
+              <h3 class="session-title">{{ session.title }}</h3>
+              <p class="session-topic">{{ session.topic }}</p>
+              <p class="session-description">{{ session.description }}</p>
+            </div>
+
+            <div class="session-mentor">
+              <div class="mentor-avatar">
+                <img 
+                  *ngIf="session.mentor.avatar; else mentorInitials" 
+                  [src]="session.mentor.avatar" 
+                  [alt]="session.mentor.firstName + ' ' + session.mentor.lastName"
+                  class="mentor-image">
+                <ng-template #mentorInitials>
+                  <div class="mentor-initials">{{ getMentorInitials(session.mentor) }}</div>
+                </ng-template>
+                <div class="mentor-status" [class.online]="session.mentor.isOnline" [class.offline]="!session.mentor.isOnline"></div>
+              </div>
+              <div class="mentor-info">
+                <div class="mentor-name">{{ session.mentor.firstName }} {{ session.mentor.lastName }}</div>
+                <div class="mentor-expertise">{{ session.mentor.expertise.join(', ') }}</div>
+                <div class="mentor-rating">
+                  <span class="rating-stars">⭐ {{ session.mentor.rating }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Schedule -->
+          <div class="session-schedule">
+            <div class="schedule-item">
+              <span class="schedule-icon">📅</span>
+              <span class="schedule-text">{{ formatDate(session.date) }}</span>
+            </div>
+            <div class="schedule-item">
+              <span class="schedule-icon">⏰</span>
+              <span class="schedule-text">{{ session.startTime }} - {{ session.endTime }}</span>
+            </div>
+            <div class="schedule-item">
+              <span class="schedule-icon">⏱️</span>
+              <span class="schedule-text">{{ session.duration }} minuto</span>
+            </div>
+          </div>
+
+          <!-- Session Actions -->
+          <div class="session-actions" (click)="$event.stopPropagation()">
+            <button 
+              *ngIf="session.status === 'upcoming' && session.sessionType === 'video-call'" 
+              class="action-btn primary"
+              (click)="joinSession(session)">
+              Sumali sa Session
+            </button>
+            <button 
+              *ngIf="session.status === 'ongoing'" 
+              class="action-btn success"
+              (click)="joinSession(session)">
+              Sumali Ngayon
+            </button>
+            <button 
+              *ngIf="session.status === 'upcoming'" 
+              class="action-btn secondary"
+              (click)="rescheduleSession(session)">
+              I-reschedule
+            </button>
+            <button 
+              *ngIf="session.status === 'upcoming'" 
+              class="action-btn danger"
+              (click)="cancelSession(session)">
+              I-cancel
+            </button>
+            <button 
+              class="action-btn outline"
+              (click)="viewSessionDetails(session)">
+              Tingnan ang Details
+            </button>
+          </div>
+
+          <!-- Session Notes/Materials -->
+          <div class="session-extras" *ngIf="session.notes || session.materials">
+            <div class="session-notes" *ngIf="session.notes">
+              <span class="notes-icon">📝</span>
+              <span class="notes-text">{{ session.notes }}</span>
+            </div>
+            <div class="session-materials" *ngIf="session.materials && session.materials.length > 0">
+              <span class="materials-icon">📎</span>
+              <span class="materials-text">{{ session.materials.length }} materials</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Sessions State -->
+      <ng-template #noSessions>
+        <div class="no-sessions">
+          <div class="no-sessions-icon">📅</div>
+          <h3>Walang sessions na nahanap</h3>
+          <p>Mag-book ng session sa inyong mga mentor para magsimula.</p>
+          <button class="book-session-btn" (click)="bookNewSession()">
+            Book Session
+          </button>
+        </div>
+      </ng-template>
+    </div>
+</div>

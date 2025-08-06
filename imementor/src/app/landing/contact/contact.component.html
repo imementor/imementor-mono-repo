@@ -1,0 +1,148 @@
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="contact-header">
+      <h2 class="section-title">Makipag-ugnayan sa Amin</h2>
+      <p class="section-subtitle">
+        May tanong? Gusto mong maging parte ng IMementor community? 
+        Sabik kaming marinig ang inyong mga kwento at mga ideya!
+      </p>
+    </div>
+
+    <div class="contact-content">
+      <!-- Contact Form -->
+      <div class="contact-form-section">
+        <h3 class="form-title">Send us a Message</h3>
+        
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form" *ngIf="!isSubmitted">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName" class="form-label">First Name</label>
+              <input 
+                type="text" 
+                id="firstName" 
+                formControlName="firstName"
+                class="form-input"
+                [class.error]="isFieldInvalid('firstName')"
+                placeholder="Juan">
+              <div class="error-message" *ngIf="isFieldInvalid('firstName')">
+                {{ getErrorMessage('firstName') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input 
+                type="text" 
+                id="lastName" 
+                formControlName="lastName"
+                class="form-input"
+                [class.error]="isFieldInvalid('lastName')"
+                placeholder="Dela Cruz">
+              <div class="error-message" *ngIf="isFieldInvalid('lastName')">
+                {{ getErrorMessage('lastName') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label">Email Address</label>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email"
+              class="form-input"
+              [class.error]="isFieldInvalid('email')"
+              placeholder="juan.delacruz@email.com">
+            <div class="error-message" *ngIf="isFieldInvalid('email')">
+              {{ getErrorMessage('email') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="message" class="form-label">Your Message / Inquiry</label>
+            <textarea 
+              id="message" 
+              formControlName="message"
+              class="form-textarea"
+              [class.error]="isFieldInvalid('message')"
+              rows="6"
+              placeholder="Kamusta! Gusto ko sanang malaman kung paano ako magiging mentor sa platform ninyo..."></textarea>
+            <div class="error-message" *ngIf="isFieldInvalid('message')">
+              {{ getErrorMessage('message') }}
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            class="submit-button"
+            [disabled]="isSubmitting"
+            [class.loading]="isSubmitting">
+            <span *ngIf="!isSubmitting">Send Message</span>
+            <span *ngIf="isSubmitting" class="loading-text">
+              <span class="spinner"></span>
+              Sending...
+            </span>
+          </button>
+        </form>
+
+        <!-- Success Message -->
+        <div class="success-message" *ngIf="isSubmitted">
+          <div class="success-icon">✅</div>
+          <h3>Salamat sa inyong message!</h3>
+          <p>Nakita na namin ang inyong inquiry. Makakakuha kayo ng sagot within 24 hours.</p>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="contact-info-section">
+        <h3 class="info-title">Iba pang Paraan para Makipag-ugnayan</h3>
+        
+        <div class="contact-methods">
+          <div class="contact-method">
+            <div class="method-icon">📧</div>
+            <div class="method-details">
+              <h4>Email</h4>
+              <p>hello@imementor.ph</p>
+              <span>Sumagot kami within 24 hours</span>
+            </div>
+          </div>
+
+          <div class="contact-method">
+            <div class="method-icon">💬</div>
+            <div class="method-details">
+              <h4>Social Media</h4>
+              <p>@IMementorPH</p>
+              <span>Follow us para sa updates!</span>
+            </div>
+          </div>
+
+          <div class="contact-method">
+            <div class="method-icon">🏢</div>
+            <div class="method-details">
+              <h4>Office</h4>
+              <p>Makati City, Philippines</p>
+              <span>Virtual meetings available</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="community-cta">
+          <h4>Join our Community!</h4>
+          <p>Makisali sa aming growing community ng mga Filipino mentors at mentees.</p>
+          <div class="social-links">
+            <a href="#facebook" class="social-link facebook">📘 Facebook</a>
+            <a href="#linkedin" class="social-link linkedin">💼 LinkedIn</a>
+            <a href="#twitter" class="social-link twitter">🐦 Twitter</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-footer">
+      <p class="footer-text">
+        <strong>Reminder:</strong> Ang IMementor ay platform para sa professional development at educational mentorship. 
+        Lahat ng conversations ay dapat respectful at focused sa learning objectives.
+      </p>
+    </div>
+  </div>
+</section>

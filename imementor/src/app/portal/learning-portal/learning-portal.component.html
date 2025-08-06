@@ -1,0 +1,349 @@
+<div class="page-container">
+  <!-- Page Header -->
+  <app-page-header 
+    title="Learning Portal"
+    subtitle="Mag-aral ng mga bagong skills sa pamamagitan ng high-quality courses at videos"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button 
+        class="tab-button"
+        [class.active]="currentTab === 'courses'"
+        (click)="switchTab('courses')">
+        <span class="tab-icon">📚</span>
+        <span>Courses</span>
+      </button>
+      <button 
+        class="tab-button"
+        [class.active]="currentTab === 'paths'"
+        (click)="switchTab('paths')">
+        <span class="tab-icon">🛤️</span>
+        <span>Learning Paths</span>
+      </button>
+      <button 
+        class="tab-button"
+        [class.active]="currentTab === 'my-learning'"
+        (click)="switchTab('my-learning')">
+        <span class="tab-icon">📖</span>
+        <span>My Learning</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filters Section -->
+  <div class="search-filters-section" *ngIf="currentTab === 'courses'">
+    <div class="search-bar-container">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="M21 21l-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Maghanap ng courses, topics, o instructors..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()">
+      </div>
+    </div>
+
+    <!-- Filters Row -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <label class="filter-label">Category</label>
+        <select class="filter-select" [(ngModel)]="selectedCategory" (change)="onFilterChange()">
+          <option *ngFor="let option of categoryOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Level</label>
+        <select class="filter-select" [(ngModel)]="selectedLevel" (change)="onFilterChange()">
+          <option *ngFor="let option of levelOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Skill</label>
+        <select class="filter-select" [(ngModel)]="selectedSkill" (change)="onFilterChange()">
+          <option *ngFor="let option of skillOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Sort By</label>
+        <select class="filter-select" [(ngModel)]="sortBy" (change)="onFilterChange()">
+          <option *ngFor="let option of sortOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Filter Toggles -->
+    <div class="filter-toggles">
+      <label class="toggle-filter">
+        <input type="checkbox" [(ngModel)]="showFreeOnly" (change)="onFilterChange()">
+        <span class="toggle-text">Free courses only</span>
+      </label>
+      <label class="toggle-filter">
+        <input type="checkbox" [(ngModel)]="showCompletedOnly" (change)="onFilterChange()">
+        <span class="toggle-text">Completed courses only</span>
+      </label>
+      <button class="clear-filters-btn" (click)="clearFilters()">
+        <span>Clear Filters</span>
+      </button>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info">
+      <span class="results-count">{{ getFilteredCount() }} of {{ getTotalCount() }} courses</span>
+      <div class="view-controls">
+        <button 
+          class="view-toggle"
+          [class.active]="viewMode === 'grid'"
+          (click)="viewMode = 'grid'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="9"></rect>
+            <rect x="14" y="3" width="7" height="5"></rect>
+            <rect x="14" y="12" width="7" height="9"></rect>
+            <rect x="3" y="16" width="7" height="5"></rect>
+          </svg>
+        </button>
+        <button 
+          class="view-toggle"
+          [class.active]="viewMode === 'list'"
+          (click)="viewMode = 'list'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Courses Content -->
+  <div class="content-section" *ngIf="currentTab === 'courses'">
+    <div class="courses-grid" [class.list-view]="viewMode === 'list'">
+      <div *ngFor="let course of filteredCourses" class="course-card">
+        <div class="course-thumbnail">
+          <img 
+            [src]="getSafeImageUrl(course.thumbnail, 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&h=180&fit=crop&auto=format&q=80')" 
+            [alt]="course.title" 
+            class="thumbnail-image loading"
+            (load)="onImageLoad($event)"
+            (loadstart)="onImageLoadStart($event)"
+            (error)="onImageError($event)">
+          <div class="course-badges">
+            <span class="level-badge" [class]="course.level.toLowerCase()">{{ course.level }}</span>
+            <span class="premium-badge" *ngIf="course.isPremium">Premium</span>
+          </div>
+          <div class="course-duration">{{ course.duration }}</div>
+        </div>
+        
+        <div class="course-content">
+          <h3 class="course-title">{{ course.title }}</h3>
+          <p class="course-description">{{ course.description }}</p>
+          
+          <div class="course-instructor">
+            <span class="instructor-name">{{ course.instructor }}</span>
+          </div>
+          
+          <div class="course-stats">
+            <div class="rating">
+              <div class="stars">
+                <span class="star" *ngFor="let star of [1,2,3,4,5]" 
+                      [class.filled]="star <= course.rating">★</span>
+              </div>
+              <span class="rating-text">{{ course.rating }} ({{ course.reviewCount }})</span>
+            </div>
+            <div class="enrollment">{{ course.enrolledStudents | number }} students</div>
+          </div>
+          
+          <div class="course-tags">
+            <span *ngFor="let tag of course.tags" class="tag">{{ tag }}</span>
+          </div>
+          
+          <!-- Progress bar for enrolled courses -->
+          <div class="progress-section" *ngIf="course.progress > 0">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width]="getProgressWidth(course.progress)"></div>
+            </div>
+            <span class="progress-text">{{ course.progress }}% complete</span>
+          </div>
+          
+          <div class="course-actions">
+            <button 
+              *ngIf="course.progress === 0" 
+              class="enroll-btn"
+              (click)="enrollInCourse(course)">
+              {{ course.isPremium ? 'Enroll (Premium)' : 'Enroll Free' }}
+            </button>
+            <button 
+              *ngIf="course.progress > 0 && !course.isCompleted" 
+              class="continue-btn"
+              (click)="continueCourse(course)">
+              Continue Learning
+            </button>
+            <button 
+              *ngIf="course.isCompleted" 
+              class="completed-btn"
+              (click)="continueCourse(course)">
+              Review Course
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Paths Content -->
+  <div class="content-section" *ngIf="currentTab === 'paths'">
+    <div class="learning-paths">
+      <div *ngFor="let path of learningPaths" class="learning-path-card">
+        <div class="path-header">
+          <h3 class="path-title">{{ path.title }}</h3>
+          <span class="path-level" [class]="path.level.toLowerCase()">{{ path.level }}</span>
+        </div>
+        
+        <p class="path-description">{{ path.description }}</p>
+        
+        <div class="path-stats">
+          <div class="stat">
+            <span class="stat-label">Courses:</span>
+            <span class="stat-value">{{ path.totalCourses }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Duration:</span>
+            <span class="stat-value">{{ path.estimatedTime }}</span>
+          </div>
+        </div>
+        
+        <div class="path-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" 
+                 [style.width]="(path.completedCourses / path.totalCourses * 100) + '%'"></div>
+          </div>
+          <span class="progress-text">
+            {{ path.completedCourses }} of {{ path.totalCourses }} courses completed
+          </span>
+        </div>
+        
+        <div class="path-skills">
+          <span *ngFor="let skill of path.skills" class="skill-tag">{{ skill }}</span>
+        </div>
+        
+        <button class="start-path-btn" (click)="startLearningPath(path)">
+          {{ path.completedCourses > 0 ? 'Continue Path' : 'Start Learning Path' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Learning Content -->
+  <div class="content-section" *ngIf="currentTab === 'my-learning'">
+    <div class="my-learning-section">
+      <!-- In Progress Courses -->
+      <div class="learning-category" *ngIf="getInProgressCourses().length > 0">
+        <h3 class="category-title">In Progress ({{ getInProgressCourses().length }})</h3>
+        <div class="courses-grid">
+          <div *ngFor="let course of getInProgressCourses()" class="course-card">
+            <div class="course-thumbnail">
+              <img 
+                [src]="getSafeImageUrl(course.thumbnail, 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&h=180&fit=crop&auto=format&q=80')" 
+                [alt]="course.title" 
+                class="thumbnail-image loading"
+                (load)="onImageLoad($event)"
+                (loadstart)="onImageLoadStart($event)"
+                (error)="onImageError($event)">
+              <div class="course-duration">{{ course.duration }}</div>
+            </div>
+            
+            <div class="course-content">
+              <h4 class="course-title">{{ course.title }}</h4>
+              <div class="course-instructor">{{ course.instructor }}</div>
+              
+              <div class="progress-section">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width]="getProgressWidth(course.progress)"></div>
+                </div>
+                <span class="progress-text">{{ course.progress }}% complete</span>
+              </div>
+              
+              <button class="continue-btn" (click)="continueCourse(course)">
+                Continue Learning
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Courses -->
+      <div class="learning-category" *ngIf="getCompletedCourses().length > 0">
+        <h3 class="category-title">Completed ({{ getCompletedCourses().length }})</h3>
+        <div class="courses-grid">
+          <div *ngFor="let course of getCompletedCourses()" class="course-card completed">
+            <div class="course-thumbnail">
+              <img 
+                [src]="getSafeImageUrl(course.thumbnail, 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&h=180&fit=crop&auto=format&q=80')" 
+                [alt]="course.title" 
+                class="thumbnail-image loading"
+                (load)="onImageLoad($event)"
+                (loadstart)="onImageLoadStart($event)"
+                (error)="onImageError($event)">
+              <div class="completed-badge">✓</div>
+            </div>
+            
+            <div class="course-content">
+              <h4 class="course-title">{{ course.title }}</h4>
+              <div class="course-instructor">{{ course.instructor }}</div>
+              
+              <div class="completion-info">
+                <span class="completed-text">Course Completed!</span>
+                <span class="certificate-text" *ngIf="course.certificateAvailable">
+                  Certificate Available
+                </span>
+              </div>
+              
+              <button class="review-btn" (click)="continueCourse(course)">
+                Review Course
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="getMyCourses().length === 0">
+        <div class="empty-icon">📚</div>
+        <h3>Start Your Learning Journey</h3>
+        <p>You haven't enrolled in any courses yet. Explore our course catalog to begin learning!</p>
+        <button class="browse-courses-btn" (click)="switchTab('courses')">
+          Browse Courses
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Course Details Modal -->
+<app-course-details
+  [courseId]="selectedCourseId"
+  [isOpen]="isCourseDetailsOpen"
+  (close)="closeCourseDetails()"
+  (courseEnrolled)="onCourseEnrolled($event)">
+</app-course-details>

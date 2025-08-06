@@ -1,0 +1,162 @@
+<div class="messages-container">
+  <!-- Shared Header -->
+  <app-page-header 
+    title="💬 Mga Mensahe"
+    subtitle="Makipag-usap sa inyong mga mentor at mga kasama"
+    [actions]="headerActions"
+    [showBackButton]="false">
+  </app-page-header>  <div class="messages-content">
+    <!-- Messages List -->
+    <div class="messages-list">
+    <div class="search-bar">
+      <input type="text" placeholder="Maghanap ng mensahe..." class="search-input">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+    </div>
+
+    <div class="conversations-list">
+      <div 
+        *ngFor="let conversation of conversations"
+        class="conversation-item"
+        [class.has-unread]="conversation.unreadCount > 0"
+        (click)="openChat(conversation)">
+        
+        <div class="conversation-avatar">
+          <div 
+            class="avatar"
+            [style.background-image]="conversation.participants[0].avatar ? 'url(' + conversation.participants[0].avatar + ')' : 'none'">
+            <span *ngIf="!conversation.participants[0].avatar" class="avatar-initials">
+              {{ getUserInitials(conversation.participants[0]) }}
+            </span>
+          </div>
+          <div 
+            class="online-indicator"
+            [class.online]="conversation.participants[0].isOnline">
+          </div>
+        </div>
+
+        <div class="conversation-content">
+          <div class="conversation-header">
+            <h3 class="mentor-name">{{ getFullName(conversation.participants[0]) }}</h3>
+            <span class="message-time">{{ getMessageTime(conversation.lastMessage.timestamp) }}</span>
+          </div>
+          
+          <div class="conversation-footer">
+            <p class="last-message">
+              <span *ngIf="conversation.lastMessage.senderId === currentUserId" class="you-label">You: </span>
+              {{ conversation.lastMessage.content }}
+            </p>
+            <div class="message-indicators">
+              <span 
+                *ngIf="conversation.unreadCount > 0" 
+                class="unread-badge">
+                {{ conversation.unreadCount }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="conversations.length === 0" class="empty-state">
+        <div class="empty-icon">💬</div>
+        <h3>Walang mga mensahe pa</h3>
+        <p>Magsimula ng conversation sa inyong mga mentor!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Popup Modal -->
+  <div *ngIf="isChatOpen && selectedConversation" class="chat-modal-overlay" (click)="closeChat()">
+    <div class="chat-modal" (click)="$event.stopPropagation()">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-avatar">
+            <div 
+              class="avatar"
+              [style.background-image]="selectedConversation.participants[0].avatar ? 'url(' + selectedConversation.participants[0].avatar + ')' : 'none'">
+              <span *ngIf="!selectedConversation.participants[0].avatar" class="avatar-initials">
+                {{ getUserInitials(selectedConversation.participants[0]) }}
+              </span>
+            </div>
+            <div 
+              class="online-indicator"
+              [class.online]="selectedConversation.participants[0].isOnline">
+            </div>
+          </div>
+          <div class="chat-user-info">
+            <h3>{{ getFullName(selectedConversation.participants[0]) }}</h3>
+            <p class="user-status">{{ getLastSeenText(selectedConversation.participants[0]) }}</p>
+          </div>
+        </div>
+        
+        <div class="chat-header-actions">
+          <button class="chat-action-btn" title="Video Call">
+            📹
+          </button>
+          <button class="chat-action-btn" title="Voice Call">
+            📞
+          </button>
+          <button class="chat-action-btn" title="Mga Detalye">
+            ⓘ
+          </button>
+          <button class="close-chat-btn" (click)="closeChat()" title="Isara">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="chat-messages">
+        <div 
+          *ngFor="let message of messages"
+          class="message"
+          [class.sent]="message.senderId === currentUserId"
+          [class.received]="message.senderId !== currentUserId">
+          
+          <div class="message-bubble">
+            <p class="message-content">{{ message.content }}</p>
+            <span class="message-timestamp">{{ getDetailedMessageTime(message.timestamp) }}</span>
+          </div>
+        </div>
+
+        <!-- Typing indicator (for future use) -->
+        <!-- <div class="typing-indicator">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <span class="typing-text">{{ getFullName(selectedConversation.participants[0]) }} is typing...</span>
+        </div> -->
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input-container">
+        <div class="chat-input-wrapper">
+          <button class="attachment-btn" title="Mag-attach ng file">
+            📎
+          </button>
+          <textarea 
+            [(ngModel)]="newMessage"
+            placeholder="Mag-type ng mensahe..."
+            class="chat-input"
+            rows="1"
+            (keydown)="onKeyPress($event)"
+            #messageInput></textarea>
+          <button 
+            class="send-btn"
+            [disabled]="!newMessage.trim()"
+            (click)="sendMessage()"
+            title="Magpadala">
+            ➤
+          </button>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
