@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/apps/imementor/browser",
+    "public": "dist/imementor/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
