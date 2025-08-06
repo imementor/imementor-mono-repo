@@ -6,7 +6,6 @@
     }
   },
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "nxCloudId": "688f5cef555a115d919abb74",
   "targetDefaults": {
     "@angular/build:application": {
       "cache": true,
