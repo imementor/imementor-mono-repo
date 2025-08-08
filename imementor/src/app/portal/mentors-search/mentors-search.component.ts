@@ -118,6 +118,9 @@ export class MentorsSearchComponent implements OnInit {
   isMentorProfileModalOpen = false;
   selectedMentorId: string | null = null;
 
+  // New properties for enhanced functionality
+  favoriteIds: { [key: string]: boolean } = {};
+
   sortOptions = [
     { value: 'rating', label: 'Rating (Pinakamataas)' },
     { value: 'experience', label: 'Experience (Pinaka-marami)' },
@@ -306,6 +309,119 @@ export class MentorsSearchComponent implements OnInit {
         sessionTypes: ['video-call', 'chat'],
         totalSessions: 87,
         responseTime: 'Within 1 hour'
+      },
+      {
+        id: 'm8',
+        firstName: 'Diego',
+        lastName: 'Cruz',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+        expertise: ['Artificial Intelligence', 'Deep Learning'],
+        field: 'artificial-intelligence',
+        skills: ['Python', 'TensorFlow', 'PyTorch', 'Keras', 'Computer Vision'],
+        rating: 4.8,
+        reviewCount: 89,
+        isOnline: true,
+        bio: 'AI researcher and practitioner focused on computer vision and natural language processing.',
+        experience: 6,
+        hourlyRate: 3800,
+        languages: ['English', 'Filipino'],
+        location: 'UP Diliman, Philippines',
+        timezone: 'GMT+8',
+        availability: { available: true },
+        sessionTypes: ['video-call', 'chat'],
+        totalSessions: 145,
+        responseTime: 'Within 1 hour'
+      },
+      {
+        id: 'm9',
+        firstName: 'Lucia',
+        lastName: 'Morales',
+        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+        expertise: ['Frontend Development', 'React Development'],
+        field: 'web-development',
+        skills: ['React', 'Next.js', 'TypeScript', 'Redux', 'Tailwind CSS'],
+        rating: 4.7,
+        reviewCount: 112,
+        isOnline: true,
+        bio: 'React specialist building modern web applications with focus on performance and user experience.',
+        experience: 5,
+        hourlyRate: 2400,
+        languages: ['English', 'Filipino'],
+        location: 'Pasig, Philippines',
+        timezone: 'GMT+8',
+        availability: { available: true },
+        sessionTypes: ['video-call', 'chat', 'in-person'],
+        totalSessions: 203,
+        responseTime: 'Within 30 minutes'
+      },
+      {
+        id: 'm10',
+        firstName: 'Roberto',
+        lastName: 'Silva',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        expertise: ['Cloud Computing', 'Infrastructure'],
+        field: 'cloud-computing',
+        skills: ['AWS', 'Terraform', 'Docker', 'Jenkins', 'Microservices'],
+        rating: 4.6,
+        reviewCount: 76,
+        isOnline: false,
+        bio: 'Cloud architect with extensive experience in AWS and infrastructure automation.',
+        experience: 10,
+        hourlyRate: 3500,
+        languages: ['English', 'Filipino'],
+        location: 'Alabang, Philippines',
+        timezone: 'GMT+8',
+        availability: { 
+          available: false, 
+          nextAvailable: new Date('2025-08-09T10:00:00') 
+        },
+        sessionTypes: ['video-call'],
+        totalSessions: 178,
+        responseTime: 'Within 4 hours'
+      },
+      {
+        id: 'm11',
+        firstName: 'Carmen',
+        lastName: 'Villanueva',
+        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+        expertise: ['Product Design', 'Design Systems'],
+        field: 'ui-ux-design',
+        skills: ['Figma', 'Design Systems', 'Prototyping', 'User Testing', 'Branding'],
+        rating: 4.9,
+        reviewCount: 134,
+        isOnline: true,
+        bio: 'Senior product designer specializing in design systems and user-centered design processes.',
+        experience: 8,
+        hourlyRate: 2700,
+        languages: ['English', 'Filipino'],
+        location: 'BGC, Philippines',
+        timezone: 'GMT+8',
+        availability: { available: true },
+        sessionTypes: ['video-call', 'chat', 'in-person'],
+        totalSessions: 256,
+        responseTime: 'Within 25 minutes'
+      },
+      {
+        id: 'm12',
+        firstName: 'Eduardo',
+        lastName: 'Ramos',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        expertise: ['Blockchain Development', 'Smart Contracts'],
+        field: 'blockchain',
+        skills: ['Solidity', 'Web3', 'Ethereum', 'Smart Contracts', 'DeFi'],
+        rating: 4.5,
+        reviewCount: 43,
+        isOnline: true,
+        bio: 'Blockchain developer with focus on DeFi protocols and smart contract development.',
+        experience: 4,
+        hourlyRate: 4000,
+        languages: ['English', 'Filipino'],
+        location: 'Ortigas, Philippines',
+        timezone: 'GMT+8',
+        availability: { available: true },
+        sessionTypes: ['video-call', 'chat'],
+        totalSessions: 87,
+        responseTime: 'Within 1.5 hours'
       }
     ];
     
@@ -460,8 +576,17 @@ export class MentorsSearchComponent implements OnInit {
   }
 
   addToFavorites(mentor: MentorProfile) {
-    console.log('Add to favorites:', mentor);
-    // Implement favorites functionality
+    this.favoriteIds[mentor.id] = !this.favoriteIds[mentor.id];
+    console.log('Toggle favorite for mentor:', mentor.firstName, mentor.lastName, 
+                'Favorited:', this.favoriteIds[mentor.id]);
+    
+    // In a real app, this would make an API call to save favorites
+    if (this.favoriteIds[mentor.id]) {
+      // Show success message or notification
+      console.log(`Added ${mentor.firstName} ${mentor.lastName} to favorites`);
+    } else {
+      console.log(`Removed ${mentor.firstName} ${mentor.lastName} from favorites`);
+    }
   }
 
   // Modal methods
@@ -512,5 +637,61 @@ export class MentorsSearchComponent implements OnInit {
   getFieldLabel(fieldValue: string): string {
     const field = this.fieldOptions.find(f => f.value === fieldValue);
     return field ? field.label : fieldValue;
+  }
+
+  // Enhanced methods for improved list view
+  handleImageError(event: any) {
+    event.target.style.display = 'none';
+    // The avatar placeholder will be shown instead
+  }
+
+  getStarsArray(rating: number): { filled: boolean; half: boolean }[] {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    for (let i = 0; i < 5; i++) {
+      stars.push({
+        filled: i < fullStars,
+        half: i === fullStars && hasHalfStar
+      });
+    }
+    
+    return stars;
+  }
+
+  // Enhanced mentor utility methods
+  getMentorDisplayName(mentor: MentorProfile): string {
+    return `${mentor.firstName} ${mentor.lastName}`;
+  }
+
+  getMentorExpertisePreview(mentor: MentorProfile, maxItems: number = 2): string[] {
+    return mentor.expertise.slice(0, maxItems);
+  }
+
+  getMentorSkillsPreview(mentor: MentorProfile, maxItems: number = 5): string[] {
+    return mentor.skills.slice(0, maxItems);
+  }
+
+  isTopRatedMentor(mentor: MentorProfile): boolean {
+    return mentor.rating >= 4.8;
+  }
+
+  getMentorStatusInfo(mentor: MentorProfile): { status: string; color: string; icon: string } {
+    if (mentor.availability.available && mentor.isOnline) {
+      return { status: 'Available now', color: 'green', icon: '🟢' };
+    } else if (mentor.availability.available) {
+      return { status: 'Available offline', color: 'yellow', icon: '🟡' };
+    } else if (mentor.availability.nextAvailable) {
+      const nextDate = mentor.availability.nextAvailable;
+      const statusText = `Next: ${nextDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      })}`;
+      return { status: statusText, color: 'orange', icon: '🟠' };
+    }
+    return { status: 'Not available', color: 'red', icon: '🔴' };
   }
 }

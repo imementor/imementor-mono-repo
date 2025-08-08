@@ -181,118 +181,290 @@
   <!-- Mentors Results -->
   <div *ngIf="filteredMentors.length > 0" class="mentors-results" [class.list-view]="viewMode === 'list'">
     <div class="mentors-grid" [class.list-layout]="viewMode === 'list'">
-      <div *ngFor="let mentor of filteredMentors" class="mentor-card" [class.list-item]="viewMode === 'list'">
+      <div *ngFor="let mentor of filteredMentors; let i = index" 
+           class="mentor-card" 
+           [class.list-item]="viewMode === 'list'"
+           [class.featured]="mentor.rating >= 4.8">>
         
-        <!-- Mentor Avatar and Basic Info -->
-        <div class="mentor-header">
-          <div class="mentor-avatar">
-            <img 
-              *ngIf="mentor.avatar" 
-              [src]="mentor.avatar" 
-              [alt]="mentor.firstName + ' ' + mentor.lastName"
-              class="avatar-img">
-            <div *ngIf="!mentor.avatar" class="avatar-placeholder">
-              {{ getMentorInitials(mentor) }}
+        <!-- Status Badge for Featured Mentors -->
+        <div *ngIf="mentor.rating >= 4.8" class="featured-badge">
+          <span class="badge-icon">⭐</span>
+          <span class="badge-text">Top Rated</span>
+        </div>
+
+        <!-- List View Layout -->
+        <div *ngIf="viewMode === 'list'" class="list-content">
+          <!-- Left Section: Avatar & Basic Info -->
+          <div class="list-left-section">
+            <div class="mentor-avatar-container">
+              <div class="mentor-avatar">
+                <img 
+                  *ngIf="mentor.avatar" 
+                  [src]="mentor.avatar" 
+                  [alt]="mentor.firstName + ' ' + mentor.lastName"
+                  class="avatar-img"
+                  (error)="handleImageError($event)">
+                <div *ngIf="!mentor.avatar" class="avatar-placeholder">
+                  {{ getMentorInitials(mentor) }}
+                </div>
+                <div class="online-indicator" [class]="mentor.isOnline ? 'online' : 'offline'"></div>
+              </div>
+              
+              <div class="availability-status" [class]="getAvailabilityClass(mentor)">
+                <span class="status-dot"></span>
+                <span class="status-text">{{ getAvailabilityText(mentor) }}</span>
+              </div>
             </div>
-            <div class="online-indicator" [class]="mentor.isOnline ? 'online' : 'offline'"></div>
-          </div>
-          
-          <div class="mentor-basic-info">
-            <h3 class="mentor-name">{{ mentor.firstName }} {{ mentor.lastName }}</h3>
-            <p class="mentor-location">📍 {{ mentor.location }}</p>
-            <div class="mentor-rating">
-              <span class="rating-stars">⭐ {{ mentor.rating }}</span>
-              <span class="rating-count">({{ mentor.reviewCount }} reviews)</span>
+
+            <div class="mentor-basic-info">
+              <div class="mentor-header-row">
+                <h3 class="mentor-name">{{ mentor.firstName }} {{ mentor.lastName }}</h3>
+                <button class="favorite-btn" 
+                        (click)="addToFavorites(mentor)"
+                        [class.favorited]="mentor.id in favoriteIds">
+                  <span class="heart-icon">♡</span>
+                </button>
+              </div>
+              
+              <div class="mentor-meta">
+                <div class="meta-item">
+                  <span class="meta-icon">📍</span>
+                  <span class="meta-text">{{ mentor.location }}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-icon">🌐</span>
+                  <span class="meta-text">{{ mentor.languages.join(', ') }}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-icon">⏰</span>
+                  <span class="meta-text">{{ mentor.responseTime }}</span>
+                </div>
+              </div>
+
+              <div class="mentor-rating-row">
+                <div class="rating-display">
+                  <div class="stars">
+                    <span *ngFor="let star of getStarsArray(mentor.rating)" 
+                          class="star" 
+                          [class.filled]="star.filled"
+                          [class.half]="star.half">★</span>
+                  </div>
+                  <span class="rating-value">{{ mentor.rating }}</span>
+                  <span class="rating-count">({{ mentor.reviewCount }})</span>
+                </div>
+                
+                <div class="experience-badge">
+                  <span class="experience-text">{{ mentor.experience }}+ years</span>
+                </div>
+              </div>
+
+              <div class="field-expertise-row">
+                <span class="field-tag">{{ getFieldLabel(mentor.field) }}</span>
+                <div class="expertise-preview">
+                  <span *ngFor="let expertise of mentor.expertise.slice(0, 2)" class="expertise-tag">
+                    {{ expertise }}
+                  </span>
+                  <span *ngIf="mentor.expertise.length > 2" class="more-tag">
+                    +{{ mentor.expertise.length - 2 }} more
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="mentor-actions">
-            <button class="favorite-btn" (click)="addToFavorites(mentor)">❤️</button>
-          </div>
-        </div>
+          <!-- Center Section: Details & Bio -->
+          <div class="list-center-section">
+            <div class="mentor-bio">
+              <p class="bio-text">{{ mentor.bio }}</p>
+            </div>
 
-        <!-- Mentor Details -->
-        <div class="mentor-details">
-          <div class="mentor-field">
-            <strong>Field:</strong> 
-            <span class="field-tag">{{ getFieldLabel(mentor.field) }}</span>
-          </div>
+            <div class="skills-section">
+              <div class="skills-header">
+                <span class="skills-label">Key Skills:</span>
+              </div>
+              <div class="skills-tags-compact">
+                <span *ngFor="let skill of mentor.skills.slice(0, 5)" class="skill-tag-compact">
+                  {{ skill }}
+                </span>
+                <span *ngIf="mentor.skills.length > 5" class="more-skills">
+                  +{{ mentor.skills.length - 5 }}
+                </span>
+              </div>
+            </div>
 
-          <div class="mentor-expertise">
-            <strong>Expertise:</strong>
-            <div class="expertise-tags">
-              <span *ngFor="let expertise of mentor.expertise" class="expertise-tag">
-                {{ expertise }}
-              </span>
+            <div class="session-info">
+              <div class="session-types-compact">
+                <span class="session-label">Sessions:</span>
+                <div class="session-icons">
+                  <span *ngIf="mentor.sessionTypes.includes('video-call')" 
+                        class="session-icon video" 
+                        title="Video Call">📹</span>
+                  <span *ngIf="mentor.sessionTypes.includes('chat')" 
+                        class="session-icon chat" 
+                        title="Chat">💬</span>
+                  <span *ngIf="mentor.sessionTypes.includes('in-person')" 
+                        class="session-icon in-person" 
+                        title="In Person">🤝</span>
+                </div>
+              </div>
+              
+              <div class="sessions-count">
+                <span class="count-number">{{ mentor.totalSessions }}</span>
+                <span class="count-label">sessions completed</span>
+              </div>
             </div>
           </div>
 
-          <div class="mentor-skills">
-            <strong>Skills:</strong>
-            <div class="skills-tags">
-              <span *ngFor="let skill of mentor.skills" class="skill-tag">
-                {{ skill }}
-              </span>
+          <!-- Right Section: Price & Actions -->
+          <div class="list-right-section">
+            <div class="pricing-info">
+              <div class="hourly-rate">
+                <span class="rate-amount">{{ formatHourlyRate(mentor.hourlyRate) }}</span>
+                <span class="rate-unit">/hour</span>
+              </div>
+            </div>
+
+            <div class="quick-actions">
+              <button class="action-btn primary full-width" 
+                      (click)="bookSessionWithMentor(mentor)"
+                      [disabled]="!mentor.availability.available">
+                <span class="btn-icon">📅</span>
+                <span class="btn-text">Book Session</span>
+              </button>
+              
+              <div class="secondary-actions">
+                <button class="action-btn secondary compact" 
+                        (click)="viewMentorProfile(mentor)">
+                  <span class="btn-icon">👁️</span>
+                  <span class="btn-text">View Profile</span>
+                </button>
+                <button class="action-btn secondary compact" 
+                        (click)="sendMessageToMentor(mentor)"
+                        [disabled]="!mentor.isOnline">
+                  <span class="btn-icon">💬</span>
+                  <span class="btn-text">Message</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid View Layout (Original) -->
+        <div *ngIf="viewMode === 'grid'" class="grid-content">
+          <!-- Mentor Avatar and Basic Info -->
+          <div class="mentor-header">
+            <div class="mentor-avatar">
+              <img 
+                *ngIf="mentor.avatar" 
+                [src]="mentor.avatar" 
+                [alt]="mentor.firstName + ' ' + mentor.lastName"
+                class="avatar-img"
+                (error)="handleImageError($event)">
+              <div *ngIf="!mentor.avatar" class="avatar-placeholder">
+                {{ getMentorInitials(mentor) }}
+              </div>
+              <div class="online-indicator" [class]="mentor.isOnline ? 'online' : 'offline'"></div>
+            </div>
+            
+            <div class="mentor-basic-info">
+              <h3 class="mentor-name">{{ mentor.firstName }} {{ mentor.lastName }}</h3>
+              <p class="mentor-location">📍 {{ mentor.location }}</p>
+              <div class="mentor-rating">
+                <span class="rating-stars">⭐ {{ mentor.rating }}</span>
+                <span class="rating-count">({{ mentor.reviewCount }} reviews)</span>
+              </div>
+            </div>
+
+            <div class="mentor-actions">
+              <button class="favorite-btn" 
+                      (click)="addToFavorites(mentor)"
+                      [class.favorited]="mentor.id in favoriteIds">♡</button>
             </div>
           </div>
 
-          <div class="mentor-bio">
-            <p>{{ mentor.bio }}</p>
-          </div>
-        </div>
+          <!-- Mentor Details -->
+          <div class="mentor-details">
+            <div class="mentor-field">
+              <strong>Field:</strong> 
+              <span class="field-tag">{{ getFieldLabel(mentor.field) }}</span>
+            </div>
 
-        <!-- Mentor Stats -->
-        <div class="mentor-stats">
-          <div class="stat-item">
-            <span class="stat-icon">👨‍💼</span>
-            <span class="stat-text">{{ mentor.experience }} years</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">📚</span>
-            <span class="stat-text">{{ mentor.totalSessions }} sessions</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">⏱️</span>
-            <span class="stat-text">{{ mentor.responseTime }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">💰</span>
-            <span class="stat-text">{{ formatHourlyRate(mentor.hourlyRate) }}</span>
-          </div>
-        </div>
+            <div class="mentor-expertise">
+              <strong>Expertise:</strong>
+              <div class="expertise-tags">
+                <span *ngFor="let expertise of mentor.expertise" class="expertise-tag">
+                  {{ expertise }}
+                </span>
+              </div>
+            </div>
 
-        <!-- Availability -->
-        <div class="mentor-availability" [class]="getAvailabilityClass(mentor)">
-          <span class="availability-text">{{ getAvailabilityText(mentor) }}</span>
-        </div>
+            <div class="mentor-skills">
+              <strong>Skills:</strong>
+              <div class="skills-tags">
+                <span *ngFor="let skill of mentor.skills" class="skill-tag">
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
 
-        <!-- Session Types -->
-        <div class="session-types">
-          <span class="session-types-label">Session types:</span>
-          <div class="session-type-icons">
-            <span *ngIf="mentor.sessionTypes.includes('video-call')" class="session-type" title="Video Call">📹</span>
-            <span *ngIf="mentor.sessionTypes.includes('chat')" class="session-type" title="Chat">💬</span>
-            <span *ngIf="mentor.sessionTypes.includes('in-person')" class="session-type" title="In Person">🤝</span>
+            <div class="mentor-bio">
+              <p>{{ mentor.bio }}</p>
+            </div>
           </div>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="mentor-card-actions">
-          <button class="action-btn primary" (click)="viewMentorProfile(mentor)">
-            View Profile
-          </button>
-          <button 
-            class="action-btn secondary" 
-            (click)="sendMessageToMentor(mentor)"
-            [disabled]="!mentor.isOnline">
-            Send Message
-          </button>
-          <button 
-            class="action-btn primary" 
-            (click)="bookSessionWithMentor(mentor)"
-            [disabled]="!mentor.availability.available">
-            Book Session
-          </button>
+          <!-- Mentor Stats -->
+          <div class="mentor-stats">
+            <div class="stat-item">
+              <span class="stat-icon">👨‍💼</span>
+              <span class="stat-text">{{ mentor.experience }} years</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">📚</span>
+              <span class="stat-text">{{ mentor.totalSessions }} sessions</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⏱️</span>
+              <span class="stat-text">{{ mentor.responseTime }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">💰</span>
+              <span class="stat-text">{{ formatHourlyRate(mentor.hourlyRate) }}</span>
+            </div>
+          </div>
+
+          <!-- Availability -->
+          <div class="mentor-availability" [class]="getAvailabilityClass(mentor)">
+            <span class="availability-text">{{ getAvailabilityText(mentor) }}</span>
+          </div>
+
+          <!-- Session Types -->
+          <div class="session-types">
+            <span class="session-types-label">Session types:</span>
+            <div class="session-type-icons">
+              <span *ngIf="mentor.sessionTypes.includes('video-call')" class="session-type" title="Video Call">📹</span>
+              <span *ngIf="mentor.sessionTypes.includes('chat')" class="session-type" title="Chat">💬</span>
+              <span *ngIf="mentor.sessionTypes.includes('in-person')" class="session-type" title="In Person">🤝</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="mentor-card-actions">
+            <button class="action-btn primary" (click)="viewMentorProfile(mentor)">
+              View Profile
+            </button>
+            <button 
+              class="action-btn secondary" 
+              (click)="sendMessageToMentor(mentor)"
+              [disabled]="!mentor.isOnline">
+              Send Message
+            </button>
+            <button 
+              class="action-btn primary" 
+              (click)="bookSessionWithMentor(mentor)"
+              [disabled]="!mentor.availability.available">
+              Book Session
+            </button>
+          </div>
         </div>
       </div>
     </div>
