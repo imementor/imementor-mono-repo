@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PageHeaderComponent, PageAction } from '../../shared/page-header/page-header.component';
+import { PageHeaderComponent, PageAction } from '../../shared/components/layout/page-header/page-header.component';
 import { FormsModule } from '@angular/forms';
 
 export interface User {

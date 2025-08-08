@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PageAction } from '../../shared/page-header/page-header.component';
+import { PageAction } from '../../shared/components/layout/page-header/page-header.component';
 
 export interface DashboardCard {
   title: string;

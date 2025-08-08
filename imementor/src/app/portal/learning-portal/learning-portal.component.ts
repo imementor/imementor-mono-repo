@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PageHeaderComponent, PageAction } from '../../shared/page-header/page-header.component';
+import { PageHeaderComponent, PageAction } from '../../shared/components/layout/page-header/page-header.component';
 import { CourseDetailsComponent } from '../course-details/course-details.component';
 
 export interface Course {

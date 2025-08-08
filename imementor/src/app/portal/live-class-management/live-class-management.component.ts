@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LiveClassDetailsModalComponent } from '../../shared/live-class-details-modal/live-class-details-modal.component';
+import { LiveClassDetailsModalComponent } from '../../shared/components/modal/live-class-details-modal/live-class-details-modal.component';
 
 export interface LiveClassMentor {
   id: string;

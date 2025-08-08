@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { HeaderComponent } from '../../shared/header/header.component';
-import { SidePanelComponent } from '../../shared/side-panel/side-panel.component';
+import { HeaderComponent } from '../../shared/components/layout/header/header.component';
+import { SidePanelComponent } from '../../shared/components/layout/side-panel/side-panel.component';
 import { DashboardComponent } from '../dashboard/dashboard.component';
 import { ProfileComponent } from '../profile/profile.component';
 import { MessagesComponent } from '../messages/messages.component';

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PageHeaderComponent, PageAction } from '../../shared/page-header/page-header.component';
-import { BookSessionModalComponent, Mentor } from '../../shared/book-session-modal/book-session-modal.component';
-import { MentorProfileModalComponent } from '../../shared/mentor-profile-modal/mentor-profile-modal.component';
+import { PageHeaderComponent, PageAction } from '../../shared/components/layout/page-header/page-header.component';
+import { BookSessionModalComponent, Mentor } from '../../shared/components/modal/book-session-modal/book-session-modal.component';
+import { MentorProfileModalComponent } from '../../shared/components/modal/mentor-profile-modal/mentor-profile-modal.component';
 
 export interface MentorProfile {
   id: string;
