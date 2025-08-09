@@ -1,17 +1,28 @@
-<app-navbar *ngIf="!isAuthPage && !isHomePage"></app-navbar>
-
-<!-- Landing page content (shown when not on other routes) -->
-<div class="landing-page" *ngIf="isLandingPage && !isHomePage">
-  <app-hero></app-hero>
-  <app-stats></app-stats>
-  <app-about></app-about>
-  <app-founders></app-founders>
-  <app-mentors></app-mentors>
-  <app-investors-partners></app-investors-partners>
-  <app-contact></app-contact>
+<!-- Loading spinner while auth state is being determined -->
+<div class="auth-loading" *ngIf="isAuthLoading$ | async">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
 </div>
 
-<!-- Router outlet for other pages (login, register, homepage, etc.) -->
-<router-outlet></router-outlet>
+<!-- Main app content (shown when auth is loaded) -->
+<div class="app-content" *ngIf="!(isAuthLoading$ | async)">
+  <app-navbar *ngIf="!isAuthPage && !isHomePage"></app-navbar>
 
-<app-footer *ngIf="isLandingPage && !isHomePage"></app-footer>
+  <!-- Landing page content (shown when not on other routes) -->
+  <div class="landing-page" *ngIf="isLandingPage && !isHomePage">
+    <app-hero></app-hero>
+    <app-stats></app-stats>
+    <app-about></app-about>
+    <app-founders></app-founders>
+    <app-mentors></app-mentors>
+    <app-investors-partners></app-investors-partners>
+    <app-contact></app-contact>
+  </div>
+
+  <!-- Router outlet for other pages (login, register, homepage, etc.) -->
+  <router-outlet></router-outlet>
+
+  <app-footer *ngIf="isLandingPage && !isHomePage"></app-footer>
+</div>

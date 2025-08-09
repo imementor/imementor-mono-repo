@@ -11,7 +11,19 @@ import { finalize } from 'rxjs/operators';
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
     <div class="auth-container">
-      <div class="auth-card">
+      <!-- Redirecting Screen -->
+      <div class="auth-card" *ngIf="isRedirecting()">
+        <div class="redirecting-content">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+          <h2>Login Successful!</h2>
+          <p>Redirecting you to your dashboard...</p>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <div class="auth-card" *ngIf="!isRedirecting()">
         <div class="auth-header">
           <div class="logo">
             <h1>iMentor</h1>
@@ -155,7 +167,43 @@ import { finalize } from 'rxjs/operators';
       </div>
     </div>
   `,
-  styleUrl: './login.component.scss'
+  styleUrl: './login.component.scss',
+  styles: [`
+    .redirecting-content {
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .redirecting-content .loading-spinner {
+      margin-bottom: 2rem;
+    }
+
+    .redirecting-content .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e2e8f0;
+      border-left: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .redirecting-content h2 {
+      color: #059669;
+      margin: 1rem 0;
+      font-size: 1.5rem;
+    }
+
+    .redirecting-content p {
+      color: #64748b;
+      font-size: 1rem;
+    }
+  `]
 })
 export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -167,6 +215,7 @@ export class LoginComponent implements OnInit {
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
+  isRedirecting = signal(false);
 
   loginForm: FormGroup;
   returnUrl = '/portal';
@@ -204,9 +253,22 @@ export class LoginComponent implements OnInit {
           finalize(() => this.isLoading.set(false))
         )
         .subscribe({
-          next: () => {
+          next: async () => {
             console.log('Login successful');
-            this.router.navigateByUrl(this.returnUrl);
+            this.isRedirecting.set(true);
+            
+            // Add a small delay to show the success message
+            setTimeout(async () => {
+              // Check if first-time mentor needs setup
+              const isFirstTime = await this.authService.getFirstTimeLoginStatus();
+              const currentUser = this.authService.getCurrentUser();
+              
+              if (isFirstTime && currentUser?.userRole === 'mentor') {
+                this.router.navigateByUrl('/portal/mentor-setup');
+              } else {
+                this.router.navigateByUrl(this.returnUrl);
+              }
+            }, 1500);
           },
           error: (error: AuthError) => {
             this.errorMessage.set(error.message);
@@ -235,14 +297,26 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: async () => {
           console.log('Google login successful');
+          this.isRedirecting.set(true);
           
-          // Check if user needs to set their role
-          const needsRole = await this.authService.userNeedsRoleSelection();
-          if (needsRole) {
-            this.router.navigateByUrl('/auth/role-selection');
-          } else {
-            this.router.navigateByUrl(this.returnUrl);
-          }
+          // Add a small delay to show the success message
+          setTimeout(async () => {
+            // Check if user needs to set their role
+            const needsRole = await this.authService.userNeedsRoleSelection();
+            if (needsRole) {
+              this.router.navigateByUrl('/auth/role-selection');
+            } else {
+              // Check if first-time mentor needs setup
+              const isFirstTime = await this.authService.getFirstTimeLoginStatus();
+              const currentUser = this.authService.getCurrentUser();
+              
+              if (isFirstTime && currentUser?.userRole === 'mentor') {
+                this.router.navigateByUrl('/portal/mentor-setup');
+              } else {
+                this.router.navigateByUrl(this.returnUrl);
+              }
+            }
+          }, 1500);
         },
         error: (error: AuthError) => {
           this.errorMessage.set(error.message);
@@ -265,14 +339,26 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: async () => {
           console.log('Facebook login successful');
+          this.isRedirecting.set(true);
           
-          // Check if user needs to set their role
-          const needsRole = await this.authService.userNeedsRoleSelection();
-          if (needsRole) {
-            this.router.navigateByUrl('/auth/role-selection');
-          } else {
-            this.router.navigateByUrl(this.returnUrl);
-          }
+          // Add a small delay to show the success message
+          setTimeout(async () => {
+            // Check if user needs to set their role
+            const needsRole = await this.authService.userNeedsRoleSelection();
+            if (needsRole) {
+              this.router.navigateByUrl('/auth/role-selection');
+            } else {
+              // Check if first-time mentor needs setup
+              const isFirstTime = await this.authService.getFirstTimeLoginStatus();
+              const currentUser = this.authService.getCurrentUser();
+              
+              if (isFirstTime && currentUser?.userRole === 'mentor') {
+                this.router.navigateByUrl('/portal/mentor-setup');
+              } else {
+                this.router.navigateByUrl(this.returnUrl);
+              }
+            }
+          }, 1500);
         },
         error: (error: AuthError) => {
           this.errorMessage.set(error.message);

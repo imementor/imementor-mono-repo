@@ -26,7 +26,7 @@ import {
   DocumentReference 
 } from '@angular/fire/firestore';
 import { Observable, BehaviorSubject, from, throwError } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
+import { map, catchError, switchMap, tap, finalize } from 'rxjs/operators';
 import { LoginUser } from '../../shared/models/interfaces/login-user.interface';
 
 export interface AuthUser {
@@ -72,7 +72,7 @@ export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
-  private loadingSubject = new BehaviorSubject<boolean>(false);
+  private loadingSubject = new BehaviorSubject<boolean>(true); // Start with loading = true
 
   // Public observables
   public readonly user$ = this.currentUserSubject.asObservable();
@@ -97,7 +97,7 @@ export class AuthService {
       } else {
         this.currentUserSubject.next(null);
       }
-      this.loadingSubject.next(false);
+      this.loadingSubject.next(false); // Set loading to false after auth state is determined
     });
   }
 
@@ -336,11 +336,39 @@ export class AuthService {
     
     return from(signOut(this.auth))
       .pipe(
+        tap(() => {
+          // Clear local state immediately
+          this.currentUserSubject.next(null);
+          console.log('User signed out successfully');
+        }),
+        finalize(() => {
+          this.loadingSubject.next(false);
+        }),
         catchError(error => {
           this.loadingSubject.next(false);
+          console.error('Sign out error:', error);
           return throwError(() => this.handleAuthError(error));
         })
       );
+  }
+
+  // Sign out and redirect to login
+  signOutAndRedirect(): void {
+    this.signOut().subscribe({
+      next: () => {
+        // Clear any cached data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Force navigation to login page
+        window.location.href = '/auth/login';
+      },
+      error: (error) => {
+        console.error('Error during sign out:', error);
+        // Even if sign out fails, redirect to login
+        window.location.href = '/auth/login';
+      }
+    });
   }
 
   // Send password reset email
@@ -499,9 +527,32 @@ export class AuthService {
     try {
       const userDocRef = doc(this.firestore, 'users', currentUser.uid);
       await setDoc(userDocRef, { firstTimeLogin: false }, { merge: true });
+      
+      // Refresh the local user state to reflect the changes
+      await this.refreshUserState();
     } catch (error) {
       console.error('Error marking first time login as complete:', error);
       throw error;
+    }
+  }
+
+  // Refresh user state from Firestore
+  async refreshUserState(): Promise<void> {
+    const currentFirebaseUser = this.auth.currentUser;
+    if (!currentFirebaseUser) return;
+
+    try {
+      const userDoc = await getDoc(doc(this.firestore, 'users', currentFirebaseUser.uid));
+      const userData = userDoc.data();
+      
+      const authUser = this.mapFirebaseUserToAuthUser(currentFirebaseUser);
+      authUser.userRole = userData?.['userRole'] || undefined;
+      authUser.firstTimeLogin = userData?.['firstTimeLogin'] || false;
+      authUser.lastLoginAt = userData?.['lastLoginAt'] || undefined;
+      
+      this.currentUserSubject.next(authUser);
+    } catch (error) {
+      console.error('Error refreshing user state:', error);
     }
   }
 
