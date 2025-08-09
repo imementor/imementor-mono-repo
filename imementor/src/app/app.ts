@@ -43,8 +43,8 @@ export class App implements OnInit {
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.isLandingPage = event.url === '/' || event.url === '';
-        this.isAuthPage = event.url === '/login' || event.url === '/register';
-        this.isHomePage = event.url === '/homepage' || event.url === '/dashboard' || event.url === '/profile' || event.url === '/mentor-setup';
+        this.isAuthPage = event.url.includes('/auth');
+        this.isHomePage = event.url.includes('/portal');
       });
   }
 }
