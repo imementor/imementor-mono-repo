@@ -134,19 +134,6 @@ export class RoleSelectionComponent implements OnInit {
   }
 
   signOut() {
-    this.isLoading.set(true);
-    this.authService.signOut()
-      .pipe(
-        finalize(() => this.isLoading.set(false))
-      )
-      .subscribe({
-        next: () => {
-          this.router.navigateByUrl('/auth/login');
-        },
-        error: (error: AuthError) => {
-          this.errorMessage.set(error.message);
-          console.error('Sign out error:', error);
-        }
-      });
+    this.authService.signOutAndRedirect();
   }
 }

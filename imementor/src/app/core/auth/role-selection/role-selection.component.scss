@@ -1,13 +1,15 @@
-@use '../../../shared/styles/auth-shared.scss' as auth;
-
 .role-selection-form {
-  @include auth.form-base;
+  // Base form styles (copied from login component)
+  width: 100%;
+  max-width: 400px;
 
   .form-group {
     margin-bottom: 2rem;
 
     label {
-      @include auth.label-base;
+      display: block;
+      font-weight: 500;
+      color: #374151;
       margin-bottom: 1.5rem;
       font-size: 1.25rem;
       font-weight: 600;
@@ -106,8 +108,26 @@
   }
 
   .submit-btn {
-    @include auth.button-primary;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
     margin-top: 2rem;
+
+    &:hover {
+      background: #2563eb;
+    }
+
+    &:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
   }
 
   .text-btn {
@@ -130,7 +150,12 @@
   }
 
   .auth-error {
-    @include auth.error-message;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
     margin: 1.5rem 0;
   }
 

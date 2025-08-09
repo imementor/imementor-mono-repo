@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { HeaderComponent } from '../../shared/components/layout/header/header.component';
 import { SidePanelComponent } from '../../shared/components/layout/side-panel/side-panel.component';
 import { DashboardComponent } from '../dashboard/dashboard.component';
@@ -46,6 +47,8 @@ export interface User {
   styleUrl: './homepage.scss'
 })
 export class Homepage {
+  private authService = inject(AuthService);
+  
   currentUser: User = {
     firstName: 'Dr. Maria',
     lastName: 'Santos',
@@ -92,8 +95,7 @@ export class Homepage {
   }
 
   onLogout() {
-    // Clear user session/token here
     console.log('Logging out...');
-    this.router.navigate(['/']);
+    this.authService.signOutAndRedirect();
   }
 }

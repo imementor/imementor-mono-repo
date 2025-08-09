@@ -53,6 +53,11 @@ export const appRoutes: Route[] = [
     canActivate: [AuthGuard, RoleCompleteGuard],
     children: [
       {
+        path: 'mentor-setup',
+        loadComponent: () => import('./portal/mentor-setup/mentor-setup.component').then(m => m.MentorSetupComponent),
+        canActivate: [AuthGuard] // Only authenticated users, no RoleCompleteGuard here since it's for setup
+      },
+      {
         path: 'homepage',
         loadComponent: () => import('./portal/homepage/homepage').then(m => m.Homepage)
       },
@@ -80,10 +85,18 @@ export const appRoutes: Route[] = [
     ]
   },
 
-  // Landing page (public)
+  // Default route - smart redirect based on auth status
+  {
+    path: '',
+    loadComponent: () => import('./shared/components/root-redirect/root-redirect.component').then(m => m.RootRedirectComponent),
+    pathMatch: 'full'
+  },
+
+  // Landing page (public - for unauthenticated users only)
   {
     path: 'landing',
-    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent)
+    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
+    canActivate: [GuestGuard]
   },
   
   // Wildcard route (404 page)

@@ -6,7 +6,7 @@ import {
   ActivatedRouteSnapshot, 
   RouterStateSnapshot 
 } from '@angular/router';
-import { Observable, map, take, tap } from 'rxjs';
+import { Observable, map, take, tap, filter, switchMap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 @Injectable({
@@ -31,14 +31,26 @@ export class AuthGuard implements CanActivate, CanActivateChild {
   }
 
   private checkAuth(url: string): Observable<boolean> {
-    return this.authService.isAuthenticated$.pipe(
+    return this.authService.loading$.pipe(
+      // Wait until loading is complete
+      tap((loading: boolean) => {
+        if (loading) {
+          console.log('Authentication state is still loading...');
+        }
+      }),
+      // Only proceed when loading is false
+      filter((loading: boolean) => !loading),
+      // Then check if user is authenticated
+      switchMap(() => this.authService.isAuthenticated$),
       take(1),
-      tap(isAuthenticated => {
+      tap((isAuthenticated: boolean) => {
         if (!isAuthenticated) {
           console.log('Access denied - redirecting to login');
           this.router.navigate(['/auth/login'], { 
             queryParams: { returnUrl: url }
           });
+        } else {
+          console.log('Authentication successful');
         }
       })
     );
@@ -67,9 +79,13 @@ export class EmailVerifiedGuard implements CanActivate, CanActivateChild {
   }
 
   private checkEmailVerified(url: string): Observable<boolean> {
-    return this.authService.user$.pipe(
+    return this.authService.loading$.pipe(
+      // Wait until loading is complete
+      filter((loading: boolean) => !loading),
+      // Then check email verification
+      switchMap(() => this.authService.user$),
       take(1),
-      map(user => {
+      map((user) => {
         if (!user) {
           this.router.navigate(['/auth/login'], { 
             queryParams: { returnUrl: url }
@@ -98,15 +114,19 @@ export class GuestGuard implements CanActivate {
   private router = inject(Router);
 
   canActivate(): Observable<boolean> {
-    return this.authService.isAuthenticated$.pipe(
+    return this.authService.loading$.pipe(
+      // Wait until loading is complete
+      filter((loading: boolean) => !loading),
+      // Then check if user is authenticated
+      switchMap(() => this.authService.isAuthenticated$),
       take(1),
-      tap(isAuthenticated => {
+      tap((isAuthenticated: boolean) => {
         if (isAuthenticated) {
           console.log('User already authenticated - redirecting to dashboard');
           this.router.navigate(['/portal']);
         }
       }),
-      map(isAuthenticated => !isAuthenticated)
+      map((isAuthenticated: boolean) => !isAuthenticated)
     );
   }
 }
@@ -121,9 +141,13 @@ export class RoleGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     const requiredRole = route.data?.['role'] as 'mentor' | 'mentee';
     
-    return this.authService.user$.pipe(
+    return this.authService.loading$.pipe(
+      // Wait until loading is complete
+      filter((loading: boolean) => !loading),
+      // Then check user role
+      switchMap(() => this.authService.user$),
       take(1),
-      map(user => {
+      map((user) => {
         if (!user) {
           this.router.navigate(['/auth/login']);
           return false;
@@ -157,41 +181,63 @@ export class RoleCompleteGuard implements CanActivate, CanActivateChild {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Promise<boolean> {
+  ): Observable<boolean> {
     return this.checkRoleComplete(state.url);
   }
 
   canActivateChild(
     childRoute: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Promise<boolean> {
+  ): Observable<boolean> {
     return this.checkRoleComplete(state.url);
   }
 
-  private async checkRoleComplete(url: string): Promise<boolean> {
-    const currentUser = this.authService.getCurrentUser();
-    
-    if (!currentUser) {
-      this.router.navigate(['/auth/login'], { 
-        queryParams: { returnUrl: url }
-      });
-      return false;
-    }
+  private checkRoleComplete(url: string): Observable<boolean> {
+    return this.authService.loading$.pipe(
+      // Wait until loading is complete
+      filter((loading: boolean) => !loading),
+      // Then check role completion
+      switchMap(() => this.authService.user$),
+      take(1),
+      switchMap(async (currentUser) => {
+        if (!currentUser) {
+          this.router.navigate(['/auth/login'], { 
+            queryParams: { returnUrl: url }
+          });
+          return false;
+        }
 
-    // Skip role check for the role selection page itself
-    if (url.includes('/auth/role-selection')) {
-      return true;
-    }
+        // Skip role check for the role selection page itself
+        if (url.includes('/auth/role-selection')) {
+          return true;
+        }
 
-    const needsRoleSelection = await this.authService.userNeedsRoleSelection();
-    if (needsRoleSelection) {
-      console.log('User needs to complete role selection');
-      this.router.navigate(['/auth/role-selection'], { 
-        queryParams: { returnUrl: url }
-      });
-      return false;
-    }
+        // Skip setup check for the mentor setup page itself
+        if (url.includes('/portal/mentor-setup')) {
+          return true;
+        }
 
-    return true;
+        const needsRoleSelection = await this.authService.userNeedsRoleSelection();
+        if (needsRoleSelection) {
+          console.log('User needs to complete role selection');
+          this.router.navigate(['/auth/role-selection'], { 
+            queryParams: { returnUrl: url }
+          });
+          return false;
+        }
+
+        // Check if mentor user needs to complete setup
+        const isFirstTimeLogin = await this.authService.getFirstTimeLoginStatus();
+        if (isFirstTimeLogin && currentUser.userRole === 'mentor') {
+          console.log('First-time mentor needs to complete setup');
+          this.router.navigate(['/portal/mentor-setup'], { 
+            queryParams: { returnUrl: url }
+          });
+          return false;
+        }
+
+        return true;
+      })
+    );
   }
 }

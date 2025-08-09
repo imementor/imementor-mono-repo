@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -11,6 +11,7 @@ import { MentorsComponent } from './landing/mentors/mentors.component';
 import { ContactComponent } from './landing/contact/contact.component';
 import { FooterComponent } from './landing/footer/footer.component';
 import { InvestorsPartnersComponent } from './landing/investors-partners/investors-partners.component';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   imports: [
@@ -31,10 +32,15 @@ import { InvestorsPartnersComponent } from './landing/investors-partners/investo
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
+  private authService = inject(AuthService);
+  
   protected title = 'imementor';
   isLandingPage = true;
   isAuthPage = false;
   isHomePage = false;
+
+  // Expose auth loading state to template
+  isAuthLoading$ = this.authService.loading$;
 
   constructor(private router: Router) {}
 
