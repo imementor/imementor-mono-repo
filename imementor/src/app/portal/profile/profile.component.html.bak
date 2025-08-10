@@ -1,0 +1,318 @@
+<div class="profile-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>{{ isEditing ? 'I-edit ang Profile' : 'Profile' }}</h1>
+    <button 
+      class="edit-button" 
+      [class.save]="isEditing"
+      (click)="isEditing ? onSaveProfile() : toggleEdit()"
+      [disabled]="isLoading">
+      <span *ngIf="!isEditing">✏️ I-edit</span>
+      <span *ngIf="isEditing && !isLoading">💾 I-save</span>
+      <span *ngIf="isLoading">⏳ Nag-save...</span>
+    </button>
+  </div>
+
+  <div class="profile-content">
+    <!-- Profile Picture Section -->
+    <div class="profile-picture-section">
+      <div class="avatar-container">
+        <div class="profile-avatar" [style.background-image]="user.avatar ? 'url(' + user.avatar + ')' : 'none'">
+          <span *ngIf="!user.avatar" class="avatar-initials">{{ getUserInitials() }}</span>
+        </div>
+        <div class="avatar-overlay" *ngIf="isEditing">
+          <input type="file" id="avatar-upload" accept="image/*" (change)="onFileSelected($event)" hidden>
+          <label for="avatar-upload" class="upload-button">
+            📷 Palitan
+          </label>
+        </div>
+      </div>
+      <div class="user-basic-info" *ngIf="!isEditing">
+        <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+        <p class="user-type">{{ user.userType === 'mentor' ? 'Mentor' : 'Mentee' }}</p>
+        <p class="user-school" *ngIf="user.school">{{ user.school }}</p>
+        <p class="user-position" *ngIf="user.position">{{ user.position }}</p>
+      </div>
+    </div>
+
+    <!-- Form Section -->
+    <form [formGroup]="profileForm" *ngIf="isEditing" class="profile-form">
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h3>📝 Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              formControlName="firstName"
+              placeholder="Inyong first name">
+            <div class="error-message" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+              Kailangan ang first name (minimum 2 characters)
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              formControlName="lastName"
+              placeholder="Inyong last name">
+            <div class="error-message" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+              Kailangan ang last name (minimum 2 characters)
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email"
+            placeholder="inyong@email.com">
+          <div class="error-message" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+            Maglagay ng valid na email address
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="school">School/University</label>
+          <input 
+            type="text" 
+            id="school" 
+            formControlName="school"
+            placeholder="Inyong school o university">
+        </div>
+
+        <div class="form-group">
+          <label for="position">Position/Year Level</label>
+          <input 
+            type="text" 
+            id="position" 
+            formControlName="position"
+            placeholder="Student, Teacher, etc.">
+        </div>
+
+        <div class="form-group">
+          <label for="bio">Bio/About Me</label>
+          <textarea 
+            id="bio" 
+            formControlName="bio"
+            rows="4"
+            placeholder="Sabihin sa amin ang tungkol sa inyong sarili..."></textarea>
+          <div class="character-count">
+            {{ profileForm.get('bio')?.value?.length || 0 }}/500
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="form-section">
+        <h3>📞 Contact Information</h3>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input 
+            type="tel" 
+            id="phone" 
+            formControlName="phone"
+            placeholder="+63 912 345 6789">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="linkedIn">LinkedIn Username</label>
+            <input 
+              type="text" 
+              id="linkedIn" 
+              formControlName="linkedIn"
+              placeholder="your-linkedin-username">
+          </div>
+          <div class="form-group">
+            <label for="facebook">Facebook Username</label>
+            <input 
+              type="text" 
+              id="facebook" 
+              formControlName="facebook"
+              placeholder="your.facebook.username">
+          </div>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="form-section">
+        <h3>💡 Mga Interest</h3>
+        <div class="tags-container">
+          <span 
+            *ngFor="let interest of availableInterests"
+            class="tag"
+            [class.selected]="selectedInterests.includes(interest)"
+            (click)="onInterestToggle(interest)">
+            {{ interest }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Hobbies -->
+      <div class="form-section">
+        <h3>🎯 Mga Hobby</h3>
+        <div class="tags-container">
+          <span 
+            *ngFor="let hobby of availableHobbies"
+            class="tag"
+            [class.selected]="selectedHobbies.includes(hobby)"
+            (click)="onHobbyToggle(hobby)">
+            {{ hobby }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Mentor-specific sections -->
+      <div *ngIf="user.userType === 'mentor'">
+        <!-- Skills -->
+        <div class="form-section">
+          <h3>🔧 Mga Skills</h3>
+          <div *ngFor="let category of getSkillCategories()" class="skill-category">
+            <h4>{{ category }}</h4>
+            <div class="tags-container">
+              <span 
+                *ngFor="let skill of getSkillsByCategory(category)"
+                class="tag skill-tag"
+                [class.selected]="selectedSkills.includes(skill.id)"
+                (click)="onSkillToggle(skill.id)">
+                {{ skill.name }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expertise Fields -->
+        <div class="form-section">
+          <h3>🎓 Mga Field of Expertise</h3>
+          <div class="expertise-grid">
+            <div 
+              *ngFor="let field of availableExpertiseFields"
+              class="expertise-card"
+              [class.selected]="selectedExpertiseFields.includes(field.id)"
+              (click)="onExpertiseToggle(field.id)">
+              <h4>{{ field.name }}</h4>
+              <p>{{ field.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="form-section">
+          <h3>💼 Experience</h3>
+          <div class="form-group">
+            <label for="experience">Years of Experience / Background</label>
+            <textarea 
+              id="experience" 
+              formControlName="experience"
+              rows="3"
+              placeholder="Sabihin sa amin ang inyong experience sa field na inyong expertise..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button type="button" class="cancel-button" (click)="toggleEdit()">
+          Kanselahin
+        </button>
+        <button 
+          type="submit" 
+          class="save-button" 
+          [disabled]="profileForm.invalid || isLoading"
+          (click)="onSaveProfile()">
+          <span *ngIf="!isLoading">💾 I-save ang Profile</span>
+          <span *ngIf="isLoading">⏳ Nag-save...</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Display Mode -->
+    <div *ngIf="!isEditing" class="profile-display">
+      <!-- Bio Section -->
+      <div class="display-section" *ngIf="user.bio">
+        <h3>📝 About Me</h3>
+        <p class="bio-text">{{ user.bio }}</p>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="display-section">
+        <h3>📞 Contact Information</h3>
+        <div class="contact-item" *ngIf="user.email">
+          <span class="contact-label">Email:</span>
+          <span class="contact-value">{{ user.email }}</span>
+        </div>
+        <div class="contact-item" *ngIf="user.phone">
+          <span class="contact-label">Phone:</span>
+          <span class="contact-value">{{ user.phone }}</span>
+        </div>
+        <div class="contact-item" *ngIf="user.linkedIn">
+          <span class="contact-label">LinkedIn:</span>
+          <span class="contact-value">{{ user.linkedIn }}</span>
+        </div>
+        <div class="contact-item" *ngIf="user.facebook">
+          <span class="contact-label">Facebook:</span>
+          <span class="contact-value">{{ user.facebook }}</span>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="display-section" *ngIf="user.interests && user.interests.length > 0">
+        <h3>💡 Mga Interest</h3>
+        <div class="tags-display">
+          <span *ngFor="let interest of user.interests" class="tag-display">
+            {{ interest }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Hobbies -->
+      <div class="display-section" *ngIf="user.hobbies && user.hobbies.length > 0">
+        <h3>🎯 Mga Hobby</h3>
+        <div class="tags-display">
+          <span *ngFor="let hobby of user.hobbies" class="tag-display">
+            {{ hobby }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Mentor-specific display -->
+      <div *ngIf="user.userType === 'mentor'">
+        <!-- Skills -->
+        <div class="display-section" *ngIf="user.skills && user.skills.length > 0">
+          <h3>🔧 Mga Skills</h3>
+          <div class="skills-display">
+            <span 
+              *ngFor="let skillId of user.skills" 
+              class="skill-display">
+              {{ getSkillName(skillId) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Expertise Fields -->
+        <div class="display-section" *ngIf="user.expertiseFields && user.expertiseFields.length > 0">
+          <h3>🎓 Mga Field of Expertise</h3>
+          <div class="expertise-display">
+            <div 
+              *ngFor="let fieldId of user.expertiseFields" 
+              class="expertise-display-card">
+              <h4>{{ getExpertiseFieldName(fieldId) }}</h4>
+              <p>{{ getExpertiseFieldDescription(fieldId) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="display-section" *ngIf="user.experience">
+          <h3>💼 Experience</h3>
+          <p class="experience-text">{{ user.experience }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

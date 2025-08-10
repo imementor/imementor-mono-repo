@@ -13,7 +13,7 @@ import { finalize } from 'rxjs/operators';
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo">
-            <h1>iMentor</h1>
+            <h1>IMementor</h1>
           </div>
           <h2>Complete Your Profile</h2>
           <p>Please select your role to continue</p>

@@ -26,7 +26,7 @@ export function passwordMatchValidator(control: AbstractControl): {[key: string]
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo">
-            <h1>iMentor</h1>
+            <h1>IMementor</h1>
           </div>
           <h2>Create Account</h2>
           <p>Join our community of mentors and learners</p>

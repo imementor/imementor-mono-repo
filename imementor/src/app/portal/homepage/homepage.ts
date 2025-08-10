@@ -88,12 +88,6 @@ export class Homepage {
     this.isSidePanelOpen = !this.isSidePanelOpen;
   }
 
-  onUserUpdated(updatedUser: any) {
-    // Update the current user data
-    this.currentUser = { ...this.currentUser, ...updatedUser };
-    console.log('User updated in homepage:', this.currentUser);
-  }
-
   onLogout() {
     console.log('Logging out...');
     this.authService.signOutAndRedirect();
