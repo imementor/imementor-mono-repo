@@ -26,7 +26,7 @@ import { finalize } from 'rxjs/operators';
       <div class="auth-card" *ngIf="!isRedirecting()">
         <div class="auth-header">
           <div class="logo">
-            <h1>iMentor</h1>
+            <h1>IMementor</h1>
           </div>
           <h2>Welcome Back</h2>
           <p>Sign in to your account to continue</p>

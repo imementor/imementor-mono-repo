@@ -70,9 +70,11 @@ export class RootRedirectComponent implements OnInit {
   private checkAuthAndRedirect() {
     this.authService.user$.pipe(take(1)).subscribe((user) => {
       if (user) {
-        // User is authenticated, redirect to portal
-        console.log('User authenticated, redirecting to portal');
-        this.router.navigateByUrl('/portal', { replaceUrl: true });
+        if(this.router.url !== '/') {
+            // User is authenticated, redirect to portal
+            console.log('User authenticated, redirecting to portal');
+            this.router.navigateByUrl('/portal', { replaceUrl: true });
+        }
       } else {
         // User is not authenticated, redirect to landing page
         console.log('User not authenticated, redirecting to landing page');

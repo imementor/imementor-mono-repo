@@ -22,11 +22,7 @@
       <app-dashboard *ngIf="currentPage === 'dashboard'"></app-dashboard>
       
       <!-- Use the standalone profile component when on profile page -->
-      <app-profile 
-        *ngIf="currentPage === 'profile'" 
-        [user]="currentUser"
-        (userUpdated)="onUserUpdated($event)">
-      </app-profile>
+      <app-profile *ngIf="currentPage === 'profile'"></app-profile>
       
       <!-- Use the standalone mentors search component -->
       <app-mentors-search *ngIf="currentPage === 'mentors-search'"></app-mentors-search>
